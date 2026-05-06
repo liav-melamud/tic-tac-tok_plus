@@ -1,0 +1,2308 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ CYBER XO</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #06060f;
+  --surface: #0e0e1c;
+  --surface2: #161628;
+  --x-color: #00f5ff;
+  --o-color: #ff00ff;
+  --gold: #ffd700;
+  --text: #d0d0f0;
+  --muted: #5a5a8a;
+  --border: #22224a;
+  --glow-x: 0 0 8px #00f5ff, 0 0 20px #00f5ff55;
+  --glow-o: 0 0 8px #ff00ff, 0 0 20px #ff00ff55;
+  --glow-gold: 0 0 8px #ffd700, 0 0 20px #ffd70055;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body { width: 100%; height: 100%; overflow: hidden; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  position: relative;
+}
+
+/* Scan lines */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Cyber grid */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,245,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,255,0.025) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hidden { display: none !important; }
+
+/* ======= SCREENS ======= */
+.screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+/* ======= MENU ======= */
+.logo {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-align: center;
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+.logo .x { color: var(--x-color); text-shadow: var(--glow-x); }
+.logo .o { color: var(--o-color); text-shadow: var(--glow-o); }
+
+.subtitle {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.4em;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  width: min(92vw, 480px);
+  margin-bottom: 1rem;
+}
+
+.mode-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.mode-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 40%, rgba(0,245,255,0.04));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.mode-btn:hover { border-color: var(--x-color); box-shadow: var(--glow-x); transform: translateY(-2px); }
+.mode-btn:hover::after { opacity: 1; }
+.mode-btn.active { border-color: var(--x-color); background: rgba(0,245,255,0.08); box-shadow: var(--glow-x); }
+
+.mode-icon { font-size: 1.7rem; margin-bottom: 0.3rem; }
+.mode-name { font-family: 'Orbitron', monospace; font-size: 0.65rem; font-weight: 700; color: var(--x-color); letter-spacing: 0.08em; }
+.mode-desc { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; }
+
+.opts-row {
+  display: flex;
+  gap: 0.75rem;
+  width: min(92vw, 480px);
+  margin-bottom: 0.75rem;
+}
+
+.opt-group {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.opt-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.tog-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+.tog-btn {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.35rem 0.25rem;
+  cursor: pointer;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.78rem;
+  color: var(--muted);
+  transition: all 0.15s;
+  white-space: nowrap;
+  min-width: 0;
+}
+.tog-btn.active { background: var(--x-color); border-color: var(--x-color); color: var(--bg); font-weight: 700; }
+.tog-btn.active-o { background: var(--o-color); border-color: var(--o-color); color: var(--bg); font-weight: 700; }
+
+.start-btn {
+  width: min(92vw, 480px);
+  padding: 0.9rem;
+  background: linear-gradient(135deg, rgba(0,245,255,0.15), rgba(255,0,255,0.15));
+  border: 1px solid var(--x-color);
+  border-radius: 8px;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--x-color);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-shadow: var(--glow-x);
+  margin-bottom: 0.75rem;
+}
+.start-btn:hover { box-shadow: var(--glow-x), inset 0 0 20px rgba(0,245,255,0.08); transform: translateY(-2px); }
+
+.shop-link {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  cursor: pointer;
+  text-shadow: var(--glow-gold);
+  background: none; border: none;
+}
+.shop-link:hover { text-decoration: underline; }
+
+/* ======= GAME SCREEN ======= */
+#screen-game {
+  padding: 0.5rem;
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: min(96vw, 680px);
+  padding: 0.5rem 0 0.25rem;
+  flex-shrink: 0;
+}
+
+.player-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  min-width: 80px;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: all 0.3s;
+}
+.player-panel.active.x-panel { border-color: rgba(0,245,255,0.4); background: rgba(0,245,255,0.06); }
+.player-panel.active.o-panel { border-color: rgba(255,0,255,0.4); background: rgba(255,0,255,0.06); }
+
+.player-label { font-family: 'Orbitron', monospace; font-size: 0.5rem; letter-spacing: 0.15em; color: var(--muted); }
+.player-mark { font-family: 'Orbitron', monospace; font-size: 1.8rem; font-weight: 900; line-height: 1; }
+.player-mark.x { color: var(--x-color); text-shadow: var(--glow-x); }
+.player-mark.o { color: var(--o-color); text-shadow: var(--glow-o); }
+.player-score { font-family: 'Orbitron', monospace; font-size: 1.1rem; font-weight: 700; }
+
+.center-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+.timer-display {
+  font-family: 'Orbitron', monospace;
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: var(--glow-gold);
+  min-width: 2ch;
+  text-align: center;
+  line-height: 1;
+}
+.timer-display.urgent { color: #ff3333; animation: blink 0.4s ease-in-out infinite; }
+.status-text { font-family: 'Orbitron', monospace; font-size: 0.6rem; letter-spacing: 0.1em; color: var(--muted); text-align: center; }
+.draw-score { font-family: 'Orbitron', monospace; font-size: 0.5rem; letter-spacing: 0.08em; color: var(--muted); }
+
+.board-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* ======= CLASSIC BOARD ======= */
+.board {
+  display: grid;
+  gap: 3px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+  box-shadow: 0 0 30px rgba(0,245,255,0.08);
+}
+.board-3 { grid-template-columns: repeat(3, 1fr); }
+.board-5 { grid-template-columns: repeat(5, 1fr); }
+
+.cell {
+  aspect-ratio: 1;
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  user-select: none;
+  position: relative;
+}
+.cell:hover:not(.taken):not(.blocked) { background: rgba(0,245,255,0.06); border-color: rgba(0,245,255,0.25); }
+.cell.x-mark { color: var(--x-color); text-shadow: var(--glow-x); border-color: rgba(0,245,255,0.2); }
+.cell.o-mark { color: var(--o-color); text-shadow: var(--glow-o); border-color: rgba(255,0,255,0.2); }
+.cell.taken { cursor: default; }
+.cell.fading { opacity: 0.38; animation: fade-pulse 1.2s ease-in-out infinite; }
+.cell.blocked { background: rgba(255,165,0,0.08); border-color: rgba(255,165,0,0.4); cursor: not-allowed; }
+.cell.blocked::after { content:'🛡️'; position:absolute; font-size:0.55em; top:2px; right:2px; }
+.cell.win-cell { animation: win-glow 0.4s ease-in-out 4; }
+.cell.win-cell.x-mark { background: rgba(0,245,255,0.15); }
+.cell.win-cell.o-mark { background: rgba(255,0,255,0.15); }
+.cell.pop { animation: cell-pop 0.28s cubic-bezier(0.175,0.885,0.32,1.4); }
+
+/* ======= ULTIMATE BOARD ======= */
+.ultimate-outer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  background: rgba(0,245,255,0.06);
+  border: 2px solid var(--x-color);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: var(--glow-x), 0 0 40px rgba(0,245,255,0.05);
+}
+
+.mini-wrap {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.mini-wrap.active-board { border-color: var(--gold); box-shadow: 0 0 8px rgba(255,215,0,0.5); }
+.mini-wrap.won-x { border-color: var(--x-color); background: rgba(0,245,255,0.1); }
+.mini-wrap.won-o { border-color: var(--o-color); background: rgba(255,0,255,0.1); }
+
+.mini-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 3px; background: var(--surface2); }
+.mini-board .cell { border-radius: 3px; font-size: 0.85em; }
+
+.mini-won-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  background: rgba(0,0,0,0.55);
+  font-size: 2.5rem;
+}
+
+/* ======= POWER-UPS ======= */
+.pu-row {
+  display: flex;
+  justify-content: space-between;
+  width: min(96vw, 680px);
+  padding: 0.3rem 0 0.1rem;
+  flex-shrink: 0;
+}
+.pu-group { display: flex; gap: 0.4rem; align-items: center; }
+.pu-label { font-family: 'Orbitron', monospace; font-size: 0.55rem; color: var(--muted); }
+.pu-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: var(--text);
+  transition: all 0.15s;
+  position: relative;
+}
+.pu-btn:hover:not(:disabled) { border-color: var(--gold); box-shadow: 0 0 6px rgba(255,215,0,0.3); }
+.pu-btn.selected { border-color: var(--gold); background: rgba(255,215,0,0.12); box-shadow: var(--glow-gold); }
+.pu-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+.pu-badge {
+  position: absolute; top: -5px; right: -5px;
+  background: var(--gold); color: var(--bg);
+  font-size: 0.6rem; font-weight: 700;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ======= GAME OVER ======= */
+.go-box {
+  text-align: center;
+  animation: zoom-in 0.45s cubic-bezier(0.175,0.885,0.32,1.275);
+  padding: 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 0 60px rgba(0,245,255,0.08);
+}
+.go-label { font-family: 'Orbitron', monospace; font-size: 0.7rem; letter-spacing: 0.3em; color: var(--muted); margin-bottom: 0.5rem; }
+.go-mark { font-family: 'Orbitron', monospace; font-size: 4.5rem; font-weight: 900; display: block; margin: 0.5rem 0; }
+.go-mark.x { color: var(--x-color); text-shadow: var(--glow-x), 0 0 40px #00f5ff; }
+.go-mark.o { color: var(--o-color); text-shadow: var(--glow-o), 0 0 40px #ff00ff; }
+.go-mark.draw { color: var(--muted); }
+.go-name { font-family: 'Orbitron', monospace; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem; }
+.xp-tag { color: var(--gold); font-family: 'Orbitron', monospace; font-size: 0.85rem; margin: 0.5rem 0 1.5rem; text-shadow: var(--glow-gold); }
+
+.btn-row { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+.act-btn {
+  padding: 0.7rem 1.8rem;
+  border-radius: 6px;
+  border: 1px solid;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.act-btn.primary { background: linear-gradient(135deg,rgba(0,245,255,0.18),rgba(255,0,255,0.18)); border-color: var(--x-color); color: var(--x-color); }
+.act-btn.primary:hover { box-shadow: var(--glow-x); transform: translateY(-2px); }
+.act-btn.secondary { background: transparent; border-color: var(--border); color: var(--muted); }
+.act-btn.secondary:hover { border-color: var(--muted); color: var(--text); }
+
+/* ======= SHOP ======= */
+#screen-shop { gap: 0.5rem; }
+.shop-h { text-align: center; }
+.lv-label { font-family: 'Orbitron', monospace; font-size: 0.6rem; letter-spacing: 0.3em; color: var(--muted); }
+.lv-num { font-family: 'Orbitron', monospace; font-size: 3rem; font-weight: 900; color: var(--gold); text-shadow: var(--glow-gold); line-height: 1; }
+.xp-bar-wrap { width: 200px; height: 5px; background: var(--surface2); border-radius: 3px; margin: 0.4rem auto; overflow: hidden; }
+.xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--x-color), var(--o-color)); border-radius: 3px; transition: width 0.6s; }
+.xp-info { font-family: 'Orbitron', monospace; font-size: 0.55rem; color: var(--muted); letter-spacing: 0.1em; }
+
+.skins-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; width: min(90vw, 460px); margin-top: 1rem; }
+.skin-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  transition: all 0.2s;
+  position: relative;
+  cursor: default;
+}
+.skin-card.unlocked { cursor: pointer; }
+.skin-card.unlocked:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 0 10px rgba(255,215,0,0.2); }
+.skin-card.selected { border-color: var(--gold); background: rgba(255,215,0,0.08); box-shadow: var(--glow-gold); }
+.skin-card.locked { opacity: 0.45; }
+.sk-prev { font-size: 1.4rem; margin-bottom: 0.2rem; }
+.sk-name { font-family: 'Orbitron', monospace; font-size: 0.55rem; color: var(--muted); }
+.sk-req { font-size: 0.6rem; color: var(--gold); margin-top: 0.15rem; }
+.lock-ico { position: absolute; top: 3px; left: 5px; font-size: 0.75rem; }
+
+/* ======= ADMIN BTN ======= */
+.admin-btn {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  background: linear-gradient(135deg, #ffd700, #ffaa00);
+  border: 2px solid #ffd700;
+  border-radius: 6px;
+  padding: 0.4rem 0.9rem;
+  color: #06060f;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  z-index: 9000;
+  box-shadow: 0 0 12px #ffd700, 0 0 30px rgba(255,215,0,0.5);
+  text-shadow: none;
+  transition: all 0.2s;
+  animation: admin-pulse 2s ease-in-out infinite;
+}
+.admin-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 0 20px #ffd700, 0 0 50px rgba(255,215,0,0.7);
+}
+@keyframes admin-pulse {
+  0%, 100% { box-shadow: 0 0 12px #ffd700, 0 0 30px rgba(255,215,0,0.4); }
+  50% { box-shadow: 0 0 20px #ffd700, 0 0 50px rgba(255,215,0,0.7); }
+}
+.admin2-btn {
+  position: fixed;
+  top: 3.2rem;
+  left: 0.75rem;
+  background: linear-gradient(135deg, #ff00ff, #cc00cc);
+  border: 2px solid #ff00ff;
+  border-radius: 6px;
+  padding: 0.4rem 0.9rem;
+  color: #06060f;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  z-index: 9000;
+  box-shadow: 0 0 12px #ff00ff, 0 0 30px rgba(255,0,255,0.5);
+  text-shadow: none;
+  transition: all 0.2s;
+  animation: admin2-pulse 2s ease-in-out infinite;
+}
+.admin2-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 0 20px #ff00ff, 0 0 50px rgba(255,0,255,0.7);
+}
+@keyframes admin2-pulse {
+  0%, 100% { box-shadow: 0 0 12px #ff00ff, 0 0 30px rgba(255,0,255,0.4); }
+  50% { box-shadow: 0 0 20px #ff00ff, 0 0 50px rgba(255,0,255,0.7); }
+}
+
+/* ======= BACK BTN ======= */
+.back-btn {
+  position: absolute; top: 0.75rem; right: 0.75rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.35rem 0.7rem;
+  color: var(--muted);
+  font-family: 'Orbitron', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 20;
+}
+.back-btn:hover { border-color: var(--muted); color: var(--text); }
+
+/* ======= MODE BADGE ======= */
+.mode-badge {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  text-align: center;
+  padding: 0.15rem 0;
+  flex-shrink: 0;
+}
+
+/* ======= NOTIFICATION ======= */
+.notif {
+  position: fixed; top: 1rem; left: 50%; transform: translateX(-50%);
+  background: var(--surface2);
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.7rem;
+  color: var(--gold);
+  z-index: 8888;
+  box-shadow: var(--glow-gold);
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+  white-space: nowrap;
+}
+.notif.out { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+
+/* ======= ANIMATIONS ======= */
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+@keyframes fade-pulse { 0%,100%{opacity:0.38} 50%{opacity:0.65} }
+@keyframes win-glow { 0%,100%{filter:none} 50%{filter:brightness(1.6)} }
+@keyframes cell-pop { 0%{transform:scale(0) rotate(160deg);opacity:0} 65%{transform:scale(1.12) rotate(-5deg)} 100%{transform:scale(1);opacity:1} }
+@keyframes zoom-in { 0%{transform:scale(0.5);opacity:0} 100%{transform:scale(1);opacity:1} }
+@keyframes expand-flash { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 30px rgba(0,245,255,0.5)} }
+
+.expand-flash { animation: expand-flash 0.5s ease-in-out 3; }
+</style>
+</head>
+<body>
+
+<!-- ======= ADMIN BTN ======= -->
+<button class="admin-btn" onclick="openAdminPrompt()">⚙ ADMIN</button>
+<button class="admin2-btn" onclick="openAdmin2Prompt()">⚡ ADMIN 2</button>
+
+<!-- ======= ADMIN PANEL ======= -->
+<div id="admin-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;">
+  <!-- Password prompt -->
+  <div id="admin-prompt-box" style="background:#0e0e1c;border:2px solid #ffd700;border-radius:14px;padding:2rem;width:min(90vw,420px);text-align:center;box-shadow:0 0 40px rgba(255,215,0,0.4);animation:zoom-in 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
+    <div style="font-family:'Orbitron',monospace;font-size:0.55rem;letter-spacing:0.3em;color:#5a5a8a;margin-bottom:0.5rem;">SECURE ACCESS</div>
+    <div style="font-size:2rem;margin-bottom:0.25rem;">🔐</div>
+    <div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:#ffd700;text-shadow:0 0 8px #ffd700;margin-bottom:1.5rem;">ADMIN PANEL <span style="font-size:0.45rem;color:#5a5a8a;vertical-align:middle;">v2</span></div>
+    <input id="admin-code-input" type="password" placeholder="הכנס קוד גישה..." style="width:100%;padding:0.7rem 1rem;background:#06060f;border:1px solid #22224a;border-radius:6px;color:#d0d0f0;font-family:'Orbitron',monospace;font-size:0.8rem;letter-spacing:0.15em;text-align:center;outline:none;transition:border-color 0.2s;margin-bottom:0.5rem;" onkeydown="if(event.key==='Enter')submitAdminCode()" oninput="this.style.borderColor='#22224a'" />
+    <div id="admin-err" style="font-family:'Orbitron',monospace;font-size:0.6rem;color:#ff3333;min-height:1rem;margin-bottom:0.75rem;letter-spacing:0.1em;"></div>
+    <div style="display:flex;gap:0.75rem;justify-content:center;">
+      <button onclick="submitAdminCode()" style="padding:0.6rem 1.5rem;background:linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,170,0,0.2));border:1px solid #ffd700;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:700;color:#ffd700;cursor:pointer;letter-spacing:0.1em;transition:all 0.2s;">כניסה</button>
+      <button onclick="closeAdminPrompt()" style="padding:0.6rem 1.5rem;background:transparent;border:1px solid #22224a;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.7rem;color:#5a5a8a;cursor:pointer;letter-spacing:0.1em;">ביטול</button>
+    </div>
+  </div>
+
+  <!-- Admin panel after login (admin 2050) -->
+  <div id="admin-panel-box" class="hidden" style="background:#0e0e1c;border:2px solid #ffd700;border-radius:14px;padding:2rem;width:min(90vw,460px);max-height:85vh;overflow-y:auto;box-shadow:0 0 40px rgba(255,215,0,0.4);animation:zoom-in 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:0.5rem;letter-spacing:0.3em;color:#5a5a8a;">ADMIN PANEL</div>
+        <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:#ffd700;text-shadow:0 0 8px #ffd700;">⚙ לוח בקרה</div>
+      </div>
+      <button onclick="closeAdminPrompt()" style="background:transparent;border:1px solid #22224a;border-radius:4px;padding:0.3rem 0.6rem;color:#5a5a8a;font-family:'Orbitron',monospace;font-size:0.6rem;cursor:pointer;">✕ סגור</button>
+    </div>
+    <div style="background:#161628;border:1px solid #22224a;border-radius:8px;padding:1rem;margin-bottom:1rem;">
+      <div style="font-family:'Orbitron',monospace;font-size:0.55rem;letter-spacing:0.2em;color:#5a5a8a;margin-bottom:0.75rem;">📊 סטטיסטיקות שחקן</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;" id="admin-stats"></div>
+    </div>
+    <div style="background:#161628;border:1px solid #22224a;border-radius:8px;padding:1rem;margin-bottom:1rem;">
+      <div style="font-family:'Orbitron',monospace;font-size:0.55rem;letter-spacing:0.2em;color:#5a5a8a;margin-bottom:0.75rem;">🎮 כלי אדמין</div>
+      <div style="display:flex;flex-direction:column;gap:0.5rem;">
+        <button onclick="adminAddXP(500)" class="admin-action-btn">➕ הוסף 500 XP</button>
+        <button onclick="adminLevelUp()" class="admin-action-btn">⬆️ העלה רמה</button>
+        <button onclick="adminUnlockAll()" class="admin-action-btn">🎨 פתח כל הסקינים</button>
+        <button onclick="adminUnlockModes()" class="admin-action-btn" style="border-color:#00f5ff!important;color:#00f5ff!important;">🔓 פתח מצבי משחק סודיים</button>
+        <button onclick="adminLockModes()" class="admin-action-btn" style="border-color:#ff6666!important;color:#ff6666!important;">🔒 הסתר מצבי משחק סודיים</button>
+        <button onclick="adminReset()" class="admin-action-btn" style="border-color:#ff3333!important;color:#ff3333!important;">🗑️ אפס נתונים</button>
+      </div>
+    </div>
+    <div id="admin-msg" style="font-family:'Orbitron',monospace;font-size:0.6rem;color:#00f5ff;text-align:center;min-height:1rem;"></div>
+  </div>
+
+  <!-- Admin2 login prompt (liavboom) -->
+  <div id="admin2-prompt-box" class="hidden" style="background:#0e0e1c;border:2px solid #ff00ff;border-radius:14px;padding:2rem;width:min(90vw,420px);text-align:center;box-shadow:0 0 40px rgba(255,0,255,0.4);animation:zoom-in 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
+    <div style="font-family:'Orbitron',monospace;font-size:0.55rem;letter-spacing:0.3em;color:#5a5a8a;margin-bottom:0.5rem;">SECURE ACCESS</div>
+    <div style="font-size:2rem;margin-bottom:0.25rem;">⚡</div>
+    <div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:#ff00ff;text-shadow:0 0 8px #ff00ff;margin-bottom:1.5rem;">ADMIN 2 PANEL</div>
+    <input id="admin2-code-input" type="password" placeholder="הכנס קוד גישה..." style="width:100%;padding:0.7rem 1rem;background:#06060f;border:1px solid #22224a;border-radius:6px;color:#d0d0f0;font-family:'Orbitron',monospace;font-size:0.8rem;letter-spacing:0.15em;text-align:center;outline:none;transition:border-color 0.2s;margin-bottom:0.5rem;" onkeydown="if(event.key==='Enter')submitAdmin2Code()" oninput="this.style.borderColor='#22224a'" />
+    <div id="admin2-login-err" style="font-family:'Orbitron',monospace;font-size:0.6rem;color:#ff3333;min-height:1rem;margin-bottom:0.75rem;letter-spacing:0.1em;"></div>
+    <div style="display:flex;gap:0.75rem;justify-content:center;">
+      <button onclick="submitAdmin2Code()" style="padding:0.6rem 1.5rem;background:linear-gradient(135deg,rgba(255,0,255,0.2),rgba(200,0,200,0.2));border:1px solid #ff00ff;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:700;color:#ff00ff;cursor:pointer;letter-spacing:0.1em;transition:all 0.2s;">כניסה</button>
+      <button onclick="closeAdminPrompt()" style="padding:0.6rem 1.5rem;background:transparent;border:1px solid #22224a;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.7rem;color:#5a5a8a;cursor:pointer;letter-spacing:0.1em;">ביטול</button>
+    </div>
+  </div>
+
+  <!-- Admin2 panel (liavboom) -->
+  <div id="admin2-panel-box" class="hidden" style="background:#0e0e1c;border:2px solid #ff00ff;border-radius:14px;padding:2rem;width:min(90vw,520px);max-height:85vh;overflow-y:auto;box-shadow:0 0 40px rgba(255,0,255,0.4);animation:zoom-in 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:0.5rem;letter-spacing:0.3em;color:#5a5a8a;">LIAVBOOM ACCESS</div>
+        <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:#ff00ff;text-shadow:0 0 8px #ff00ff;">⚡ מצבים מתקדמים</div>
+      </div>
+      <button onclick="closeAdminPrompt()" style="background:transparent;border:1px solid #22224a;border-radius:4px;padding:0.3rem 0.6rem;color:#5a5a8a;font-family:'Orbitron',monospace;font-size:0.6rem;cursor:pointer;">✕ סגור</button>
+    </div>
+    <!-- Stats -->
+    <div style="background:#161628;border:1px solid #22224a;border-radius:8px;padding:1rem;margin-bottom:1rem;">
+      <div style="font-family:'Orbitron',monospace;font-size:0.55rem;letter-spacing:0.2em;color:#5a5a8a;margin-bottom:0.75rem;">📊 סטטיסטיקות שחקן</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;" id="admin2-stats"></div>
+    </div>
+    <!-- Set level -->
+    <div style="background:#161628;border:1px solid #22224a;border-radius:8px;padding:1rem;margin-bottom:1rem;">
+      <div style="font-family:'Orbitron',monospace;font-size:0.55rem;letter-spacing:0.2em;color:#5a5a8a;margin-bottom:0.75rem;">✏️ הגדר רמה ידנית</div>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <input id="admin2-level-input" type="number" min="1" max="999" placeholder="רמה..." style="flex:1;padding:0.5rem;background:#06060f;border:1px solid #22224a;border-radius:6px;color:#d0d0f0;font-family:'Orbitron',monospace;font-size:0.8rem;text-align:center;outline:none;" />
+        <button onclick="admin2SetLevel()" style="padding:0.5rem 1rem;background:rgba(255,0,255,0.1);border:1px solid #ff00ff;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.65rem;font-weight:700;color:#ff00ff;cursor:pointer;">קבע</button>
+      </div>
+    </div>
+    <!-- 12 modes -->
+    <div style="background:#161628;border:1px solid #22224a;border-radius:8px;padding:1rem;margin-bottom:1rem;">
+      <div style="font-family:'Orbitron',monospace;font-size:0.55rem;letter-spacing:0.2em;color:#5a5a8a;margin-bottom:0.75rem;">🎮 12 מצבי משחק מתקדמים</div>
+      <div style="display:flex;flex-direction:column;gap:0.4rem;" id="admin2-modes-list">
+        <button onclick="admin2ToggleMode('gobble')" class="admin2-mode-btn" id="a2btn-gobble">♟️ GOBBLE — ממד הגודל</button>
+        <button onclick="admin2ToggleMode('wrap')" class="admin2-mode-btn" id="a2btn-wrap">🌐 WRAP — לוח גלגלתי</button>
+        <button onclick="admin2ToggleMode('minefield')" class="admin2-mode-btn" id="a2btn-minefield">💥 MINEFIELD — מוקשים</button>
+        <button onclick="admin2ToggleMode('shelf')" class="admin2-mode-btn" id="a2btn-shelf">⏳ SHELF LIFE — כלים נעלמים</button>
+        <button onclick="admin2ToggleMode('quantum')" class="admin2-mode-btn" id="a2btn-quantum">⚛️ QUANTUM — מצב קוונטי</button>
+        <button onclick="admin2ToggleMode('gravity')" class="admin2-mode-btn" id="a2btn-gravity">🌍 GRAVITY — כבידה</button>
+        <button onclick="admin2ToggleMode('powercard')" class="admin2-mode-btn" id="a2btn-powercard">🃏 POWER CARDS — קלפי כוח</button>
+        <button onclick="admin2ToggleMode('blocker')" class="admin2-mode-btn" id="a2btn-blocker">🚧 BLOCKER — כלי נייטרלי</button>
+        <button onclick="admin2ToggleMode('points')" class="admin2-mode-btn" id="a2btn-points">🏅 POINTS — ניצחון בנקודות</button>
+        <button onclick="admin2ToggleMode('nightvision')" class="admin2-mode-btn" id="a2btn-nightvision">🌑 NIGHT VISION — ראיית לילה</button>
+        <button onclick="admin2ToggleMode('flip')" class="admin2-mode-btn" id="a2btn-flip">🔄 FLIP — החלפת סימנים</button>
+      </div>
+      <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
+        <button onclick="admin2EnableAll()" style="flex:1;padding:0.5rem;background:rgba(255,0,255,0.08);border:1px solid #ff00ff;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.58rem;font-weight:700;color:#ff00ff;cursor:pointer;">✅ פתח הכל</button>
+        <button onclick="admin2DisableAll()" style="flex:1;padding:0.5rem;background:transparent;border:1px solid #22224a;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.58rem;font-weight:700;color:#5a5a8a;cursor:pointer;">❌ הסתר הכל</button>
+      </div>
+    </div>
+    <div id="admin2-msg" style="font-family:'Orbitron',monospace;font-size:0.6rem;color:#ff00ff;text-align:center;min-height:1rem;"></div>
+  </div>
+</div>
+
+<style>
+.admin-action-btn{padding:0.55rem 1rem;background:rgba(255,215,0,0.06);border:1px solid #ffd700;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.65rem;font-weight:700;color:#ffd700;cursor:pointer;letter-spacing:0.08em;transition:all 0.2s;text-align:right;}
+.admin-action-btn:hover{background:rgba(255,215,0,0.15);box-shadow:0 0 10px rgba(255,215,0,0.3);}
+.admin2-mode-btn{padding:0.5rem 1rem;background:rgba(255,215,0,0.03);border:1px solid #22224a;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.6rem;font-weight:700;color:#5a5a8a;cursor:pointer;letter-spacing:0.06em;transition:all 0.2s;text-align:right;}
+.admin2-mode-btn:hover{border-color:#ffd700;color:#ffd700;}
+.admin2-mode-btn.enabled{background:rgba(255,215,0,0.1);border-color:#ffd700;color:#ffd700;box-shadow:0 0 6px rgba(255,215,0,0.3);}
+</style>
+
+<!-- ======= MENU ======= -->
+<div id="screen-menu" class="screen">
+  <div class="logo"><span class="x">X</span><span style="color:var(--muted);font-size:0.6em">—</span><span class="o">O</span></div>
+  <div class="subtitle">CYBER EDITION · v2.0</div>
+
+  <div class="menu-grid">
+    <div class="mode-btn active" onclick="selMode('classic',this)">
+      <div class="mode-icon">⚡</div>
+      <div class="mode-name">CLASSIC</div>
+      <div class="mode-desc">3×3 קלאסי</div>
+    </div>
+    <div class="mode-btn" onclick="selMode('ghost',this)">
+      <div class="mode-icon">👻</div>
+      <div class="mode-name">GHOST</div>
+      <div class="mode-desc">3 סימנים בלבד</div>
+    </div>
+    <div class="mode-btn" onclick="selMode('expand',this)">
+      <div class="mode-icon">📡</div>
+      <div class="mode-name">EXPAND</div>
+      <div class="mode-desc">לוח מתרחב</div>
+    </div>
+    <div class="mode-btn" onclick="selMode('ultimate',this)">
+      <div class="mode-icon">🌌</div>
+      <div class="mode-name">ULTIMATE</div>
+      <div class="mode-desc">9×9 קוונטי</div>
+    </div>
+    <div class="mode-btn admin-mode hidden" onclick="selMode('sudden',this)" id="mode-btn-sudden">
+      <div class="mode-icon">☠️</div>
+      <div class="mode-name">SUDDEN</div>
+      <div class="mode-desc">הפסד אחד = הכל</div>
+    </div>
+    <div class="mode-btn admin-mode hidden" onclick="selMode('chaos',this)" id="mode-btn-chaos">
+      <div class="mode-icon">🌀</div>
+      <div class="mode-name">CHAOS</div>
+      <div class="mode-desc">הלוח מתערבל</div>
+    </div>
+    <div class="mode-btn admin-mode hidden" onclick="selMode('marathon',this)" id="mode-btn-marathon">
+      <div class="mode-icon">⏳</div>
+      <div class="mode-name">MARATHON</div>
+      <div class="mode-desc">5×5 · ראשון ל-5</div>
+    </div>
+    <div class="mode-btn admin2-mode hidden" onclick="selMode('gobble',this)" id="mode-btn-gobble">
+      <div class="mode-icon">♟️</div>
+      <div class="mode-name">GOBBLE</div>
+      <div class="mode-desc">קטן/בינוני/גדול</div>
+    </div>
+    <div class="mode-btn admin2-mode hidden" onclick="selMode('wrap',this)" id="mode-btn-wrap">
+      <div class="mode-icon">🌐</div>
+      <div class="mode-name">WRAP</div>
+      <div class="mode-desc">לוח גלגלתי</div>
+    </div>
+    <div class="mode-btn admin2-mode hidden" onclick="selMode('minefield',this)" id="mode-btn-minefield">
+      <div class="mode-icon">💥</div>
+      <div class="mode-name">MINEFIELD</div>
+      <div class="mode-desc">משבצות מוקשים</div>
+    </div>
+    <div class="mode-btn admin2-mode hidden" onclick="selMode('shelf',this)" id="mode-btn-shelf">
+      <div class="mode-icon">⏳</div>
+      <div class="mode-name">SHELF LIFE</div>
+      <div class="mode-desc">סימנים נעלמים</div>
+    </div>
+    <div class="mode-btn admin2-mode hidden" onclick="selMode('quantum',this)" id="mode-btn-quantum">
+      <div class="mode-icon">⚛️</div>
+      <div class="mode-name">QUANTUM</div>
+      <div class="mode-desc">סימן חצי-שקוף</div>
+    </div>
+    <div class="mode-btn admin2-mode hidden" onclick="selMode('gravity',this)" id="mode-btn-gravity">
+      <div class="mode-icon">🌍</div>
+      <div class="mode-name">GRAVITY</div>
+      <div class="mode-desc">כלים נופלים</div>
+    </div>
+    <div class="mode-btn admin2-mode hidden" onclick="selMode('powercard',this)" id="mode-btn-powercard">
+      <div class="mode-icon">🃏</div>
+      <div class="mode-name">POWER CARDS</div>
+      <div class="mode-desc">קלפי יכולות</div>
+    </div>
+    <div class="mode-btn admin2-mode hidden" onclick="selMode('blocker',this)" id="mode-btn-blocker">
+      <div class="mode-icon">🚧</div>
+      <div class="mode-name">BLOCKER</div>
+      <div class="mode-desc">כלי נייטרלי</div>
+    </div>
+    <div class="mode-btn admin2-mode hidden" onclick="selMode('points',this)" id="mode-btn-points">
+      <div class="mode-icon">🏅</div>
+      <div class="mode-name">POINTS</div>
+      <div class="mode-desc">5×5 · ניצחון בנקודות</div>
+    </div>
+    <div class="mode-btn admin2-mode hidden" onclick="selMode('nightvision',this)" id="mode-btn-nightvision">
+      <div class="mode-icon">🌑</div>
+      <div class="mode-name">NIGHT VISION</div>
+      <div class="mode-desc">רואים שניה בלבד</div>
+    </div>
+    <div class="mode-btn admin2-mode hidden" onclick="selMode('flip',this)" id="mode-btn-flip">
+      <div class="mode-icon">🔄</div>
+      <div class="mode-name">FLIP</div>
+      <div class="mode-desc">המרכז הופך הכל</div>
+    </div>
+  </div>
+
+  <div class="opts-row">
+    <div class="opt-group">
+      <div class="opt-label">יריב</div>
+      <div class="tog-row">
+        <button class="tog-btn active" onclick="setVsAI(false,this)">👥 שניים</button>
+        <button class="tog-btn" onclick="setVsAI(true,this)">🤖 AI</button>
+      </div>
+    </div>
+    <div class="opt-group" id="ai-opts" style="opacity:0.3;pointer-events:none">
+      <div class="opt-label">אישיות AI</div>
+      <div class="tog-row">
+        <button class="tog-btn active-o active" onclick="setAI('balanced',this)">⚖️</button>
+        <button class="tog-btn active-o" onclick="setAI('aggressive',this)">⚔️</button>
+        <button class="tog-btn active-o" onclick="setAI('defensive',this)">🛡</button>
+        <button class="tog-btn active-o" onclick="setAI('clumsy',this)">🎲</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="opts-row">
+    <div class="opt-group">
+      <div class="opt-label">⚡ בליץ</div>
+      <div class="tog-row">
+        <button class="tog-btn active" onclick="setBlitz(0,this)">כבוי</button>
+        <button class="tog-btn" onclick="setBlitz(3,this)">3 שנ׳</button>
+        <button class="tog-btn" onclick="setBlitz(5,this)">5 שנ׳</button>
+      </div>
+    </div>
+    <div class="opt-group">
+      <div class="opt-label">💣 פאוור-אפס</div>
+      <div class="tog-row">
+        <button class="tog-btn active" onclick="setPU(true,this)">✅ כן</button>
+        <button class="tog-btn" onclick="setPU(false,this)">❌ לא</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="start-btn" onclick="startGame()">▶ התחל משחק</button>
+  <button class="shop-link" onclick="goShop()">⭐ חנות עיצובים · רמה <span id="menu-lv">1</span></button>
+</div>
+
+<!-- ======= GAME ======= -->
+<div id="screen-game" class="screen hidden">
+  <button class="back-btn" onclick="goMenu()">← תפריט</button>
+
+  <div class="game-header">
+    <div class="player-panel x-panel" id="panel-x">
+      <div class="player-label">שחקן X</div>
+      <div class="player-mark x" id="mark-x">X</div>
+      <div class="player-score" id="sc-x" style="color:var(--x-color)">0</div>
+    </div>
+
+    <div class="center-info">
+      <div class="timer-display hidden" id="tmr">5</div>
+      <div class="status-text" id="status">תור X</div>
+      <div class="draw-score" id="sc-d">תיקו: 0</div>
+    </div>
+
+    <div class="player-panel o-panel" id="panel-o">
+      <div class="player-label" id="o-lbl">שחקן O</div>
+      <div class="player-mark o" id="mark-o">O</div>
+      <div class="player-score" id="sc-o" style="color:var(--o-color)">0</div>
+    </div>
+  </div>
+
+  <div class="mode-badge" id="mode-badge"></div>
+
+  <div class="board-container" id="board-cont"></div>
+
+  <div class="pu-row hidden" id="pu-row">
+    <div class="pu-group">
+      <div class="pu-label">X</div>
+      <button class="pu-btn" id="pu-x-bomb" onclick="selPU('X','bomb')">💣 <span class="pu-badge" id="pb-x-bomb">1</span></button>
+      <button class="pu-btn" id="pu-x-block" onclick="selPU('X','block')">🛡️ <span class="pu-badge" id="pb-x-block">1</span></button>
+    </div>
+    <div class="pu-group" style="flex-direction:row-reverse">
+      <div class="pu-label">O</div>
+      <button class="pu-btn" id="pu-o-bomb" onclick="selPU('O','bomb')">💣 <span class="pu-badge" id="pb-o-bomb">1</span></button>
+      <button class="pu-btn" id="pu-o-block" onclick="selPU('O','block')">🛡️ <span class="pu-badge" id="pb-o-block">1</span></button>
+    </div>
+  </div>
+
+  <!-- Power card row (powercard mode) -->
+  <div class="pu-row hidden" id="pc-row">
+    <div class="pu-group" id="pc-x-group">
+      <div class="pu-label">X קלפים</div>
+      <button class="pu-btn" id="pc-x-move" onclick="useCard('X','move')" title="הזז כלי יריב">↔️</button>
+      <button class="pu-btn" id="pc-x-block1" onclick="useCard('X','block1')" title="חסום משבצת">🧱</button>
+      <button class="pu-btn" id="pc-x-double" onclick="useCard('X','double')" title="שחק פעמיים">×2</button>
+    </div>
+    <div class="pu-group" style="flex-direction:row-reverse" id="pc-o-group">
+      <div class="pu-label">O קלפים</div>
+      <button class="pu-btn" id="pc-o-move" onclick="useCard('O','move')" title="הזז כלי יריב">↔️</button>
+      <button class="pu-btn" id="pc-o-block1" onclick="useCard('O','block1')" title="חסום משבצת">🧱</button>
+      <button class="pu-btn" id="pc-o-double" onclick="useCard('O','double')" title="שחק פעמיים">×2</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= GAME OVER ======= -->
+<div id="screen-gameover" class="screen hidden">
+  <div class="go-box">
+    <div class="go-label" id="go-label">🏆 ניצחון!</div>
+    <span class="go-mark" id="go-mark">X</span>
+    <div class="go-name" id="go-name">שחקן X ניצח!</div>
+    <div class="xp-tag" id="go-xp">+50 XP</div>
+    <div class="btn-row">
+      <button class="act-btn primary" onclick="rematch()">🔄 שוב!</button>
+      <button class="act-btn secondary" onclick="goMenu()">🏠 תפריט</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= SHOP ======= -->
+<div id="screen-shop" class="screen hidden">
+  <button class="back-btn" onclick="goMenu()">← חזרה</button>
+  <div class="shop-h">
+    <div class="lv-label">רמה</div>
+    <div class="lv-num" id="sh-lv">1</div>
+    <div class="xp-bar-wrap"><div class="xp-bar-fill" id="sh-xp-bar" style="width:0%"></div></div>
+    <div class="xp-info" id="sh-xp-info">0 / 100 XP</div>
+  </div>
+  <div class="skins-grid" id="sh-grid"></div>
+</div>
+
+<script>
+// =====================================================
+// DATA
+// =====================================================
+const SKINS = [
+  { id:'classic', x:'X',  o:'O',  name:'קלאסי',      req:1  },
+  { id:'stars',   x:'★',  o:'☽',  name:'כוכב/ירח',   req:3  },
+  { id:'fire',    x:'🔥', o:'❄️', name:'אש/קרח',     req:5  },
+  { id:'pets',    x:'🐱', o:'🐶', name:'חתול/כלב',   req:8  },
+  { id:'space',   x:'👽', o:'🤖', name:'חייזר/רובוט', req:12 },
+  { id:'royal',   x:'👑', o:'💀', name:'מלך/מוות',   req:15 },
+];
+
+const MODE_NAMES = { classic:'CLASSIC 3×3', ghost:'GHOST MODE', expand:'EXPAND MODE', ultimate:'ULTIMATE 9×9' , sudden:'☠️ SUDDEN DEATH', chaos:'🌀 CHAOS MODE', marathon:'⏳ MARATHON',
+  gobble:'♟️ GOBBLE MODE', wrap:'🌐 WRAP MODE', minefield:'💥 MINEFIELD', shelf:'⏳ SHELF LIFE', quantum:'⚛️ QUANTUM MODE', gravity:'🌍 GRAVITY MODE',
+  powercard:'🃏 POWER CARDS', blocker:'🚧 BLOCKER MODE', points:'🏅 POINTS MODE', nightvision:'🌑 NIGHT VISION', flip:'🔄 FLIP MODE'
+};
+const XP_PER_LV = 100;
+
+// =====================================================
+// PERSISTENCE
+// =====================================================
+let P = (() => {
+  try { return JSON.parse(localStorage.getItem('cxo') || '{}'); } catch(e) { return {}; }
+})();
+P = { level: P.level||1, xp: P.xp||0, wins: P.wins||0, skin: P.skin||'classic', unlocked: P.unlocked||['classic'] };
+function saveP() { try { localStorage.setItem('cxo', JSON.stringify(P)); } catch(e){} }
+
+// =====================================================
+// MENU STATE
+// =====================================================
+let _mode = 'classic', _vsAI = false, _aiP = 'balanced', _blitz = 0, _pu = true;
+
+function selMode(m, el) {
+  _mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+function setVsAI(v, el) {
+  _vsAI = v;
+  tog(el, 'tog-btn', 'active');
+  const ao = document.getElementById('ai-opts');
+  ao.style.opacity = v ? '1' : '0.3';
+  ao.style.pointerEvents = v ? '' : 'none';
+}
+function setAI(p, el) { _aiP = p; tog(el, 'tog-btn', 'active'); }
+function setBlitz(s, el) { _blitz = s; tog(el, 'tog-btn', 'active'); }
+function setPU(v, el) { _pu = v; tog(el, 'tog-btn', 'active'); }
+
+function tog(el, cls, active) {
+  el.parentElement.querySelectorAll('.'+cls).forEach(b => b.classList.remove(active));
+  el.classList.add(active);
+}
+
+// =====================================================
+// GAME STATE
+// =====================================================
+let G;
+
+function newState() {
+  return {
+    mode: _mode, vsAI: _vsAI, aiP: _aiP,
+    blitz: _blitz, pu: _pu, skin: P.skin,
+    cur: 'X', over: false, moves: 0,
+    // Flat board
+    board: Array(9).fill(null), size: 3, wlen: 3,
+    // Ghost
+    xQ: [], oQ: [], MAXQ: 3,
+    // Expand
+    expanded: false,
+    // Ultimate
+    ub: Array.from({length:9}, ()=>Array(9).fill(null)),
+    ubb: Array(9).fill(null),
+    uActive: -1,
+    // Power-ups
+    power: { X:{bomb:1,block:1}, O:{bomb:1,block:1} },
+    blocked: {},
+    selPU: null,
+    // Score
+    sc: { X:0, O:0, d:0 },
+    // Timer
+    tInt: null, tLeft: 0,
+    // Shelf Life: {cellIndex: turnsLeft}
+    shelfTurns: {},
+    SHELF_TTL: 3,
+    // Gobble: pieceSize per cell {idx: size 1/2/3}, and hand {X:[1,2,3],O:[1,2,3]}
+    gobbleBoard: {}, gobbleHand: { X:[1,2,3], O:[1,2,3] }, gobbleSelectedSize: null,
+    // Minefield: set of mine cell indices
+    mines: [],
+    // Quantum: pending quantum marks [{player,cells:[a,b]}]
+    quantumPending: [], quantumFirst: null,
+    // Gravity: after each move, pieces fall down
+    // Points: accumulated points per player
+    pointsSc: { X:0, O:0 },
+    // Night vision: board hidden after first reveal
+    nightRevealed: false, nightHideTimer: null,
+    // Blocker: index of neutral blocker piece
+    blockerPos: 4, blockerSelected: false,
+    // PowerCard: hand of cards {X:[...],O:[...]}
+    cards: { X:['move','block1','double'], O:['move','block1','double'] },
+    cardSelected: null,
+    doublePlay: false,
+  };
+}
+
+// =====================================================
+// SCREENS
+// =====================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.getElementById('screen-'+id).classList.remove('hidden');
+}
+function goMenu() { stopTimer(); showScreen('menu'); document.getElementById('menu-lv').textContent = P.level; }
+function goShop() { renderShop(); showScreen('shop'); }
+
+// =====================================================
+// GAME START / REMATCH
+// =====================================================
+function startGame() {
+  G = newState();
+  if (G.mode === 'marathon') { G.size = 5; G.wlen = 4; G.board = Array(25).fill(null); }
+  if (G.mode === 'points') { G.size = 5; G.wlen = 3; G.board = Array(25).fill(null); }
+  if (G.mode === 'minefield') {
+    const mineCount = Math.random() < 0.5 ? 1 : 2;
+    const pool = Array.from({length:9},(_,i)=>i);
+    for (let i=0;i<mineCount;i++) {
+      const ri = Math.floor(Math.random()*pool.length);
+      G.mines.push(pool.splice(ri,1)[0]);
+    }
+  }
+  if (G.mode === 'blocker') {
+    G.blockerPos = 4;
+    G.board[4] = 'N'; // neutral
+  }
+  showScreen('game');
+  initGameUI();
+  renderAll();
+  if (G.blitz) startTimer();
+  if (G.vsAI && G.cur === 'O') schedAI();
+}
+
+function rematch() {
+  const sc = G.sc;
+  G = newState();
+  G.sc = sc;
+  showScreen('game');
+  initGameUI();
+  renderAll();
+  if (G.blitz) startTimer();
+  if (G.vsAI && G.cur === 'O') schedAI();
+}
+
+function initGameUI() {
+  const sk = skin();
+  document.getElementById('mark-x').textContent = sk.x;
+  document.getElementById('mark-o').textContent = sk.o;
+  document.getElementById('o-lbl').textContent = G.vsAI ? ({balanced:'⚖️ AI',aggressive:'⚔️ AI',defensive:'🛡 AI',clumsy:'🎲 AI'}[G.aiP]||'AI') : 'שחקן O';
+  document.getElementById('mode-badge').textContent = MODE_NAMES[G.mode] || '';
+  const puRow = document.getElementById('pu-row');
+  puRow.classList.toggle('hidden', !G.pu || G.mode === 'ultimate');
+  document.getElementById('tmr').classList.toggle('hidden', !G.blitz);
+  // powercard mode: show card row
+  const pcRow = document.getElementById('pc-row');
+  if (pcRow) pcRow.classList.toggle('hidden', G.mode !== 'powercard');
+}
+
+// =====================================================
+// SKIN HELPER
+// =====================================================
+function skin() { return SKINS.find(s => s.id === G.skin) || SKINS[0]; }
+function mk(p) { const sk = skin(); return p==='X' ? sk.x : sk.o; }
+
+// =====================================================
+// RENDER ALL
+// =====================================================
+function renderAll() {
+  // Scores
+  document.getElementById('sc-x').textContent = G.sc.X;
+  document.getElementById('sc-o').textContent = G.sc.O;
+  document.getElementById('sc-d').textContent = 'תיקו: ' + G.sc.d;
+  // Active panel
+  document.getElementById('panel-x').classList.toggle('active', G.cur==='X');
+  document.getElementById('panel-o').classList.toggle('active', G.cur==='O');
+  // Board
+  const cont = document.getElementById('board-cont');
+  cont.innerHTML = '';
+  const built = G.mode === 'ultimate' ? buildUlti() : buildFlat();
+  cont.appendChild(built);
+  if (G.mode === 'gobble' && built._gobbleRow) {
+    cont.appendChild(built._gobbleRow);
+  }
+  // Points mode: show running score
+  if (G.mode === 'points') {
+    const psc = document.createElement('div');
+    psc.style.cssText='font-family:Orbitron,monospace;font-size:0.65rem;color:var(--gold);text-align:center;margin-top:6px;letter-spacing:0.1em;';
+    psc.textContent = `נקודות: X=${G.pointsSc.X}  O=${G.pointsSc.O}`;
+    cont.appendChild(psc);
+  }
+  // Night vision: show instructions
+  if (G.mode === 'nightvision' && !G.nightRevealed && G.moves > 0) {
+    const ni = document.createElement('div');
+    ni.style.cssText='font-family:Orbitron,monospace;font-size:0.6rem;color:var(--muted);text-align:center;margin-top:6px;';
+    ni.textContent='🌑 הלוח מוסתר — זכור היכן הכל!';
+    cont.appendChild(ni);
+  }
+  // Status
+  updateStatus();
+  // PU buttons
+  if (G.pu && G.mode !== 'ultimate') updatePUbtns();
+  if (G.mode === 'powercard') updateCardBtns();
+}
+
+function updateStatus() {
+  const el = document.getElementById('status');
+  if (G.over) { el.textContent = ''; return; }
+  if (G.selPU) {
+    el.textContent = G.selPU.t === 'bomb' ? '💣 לחץ על סימן יריב' : '🛡️ לחץ על תא ריק';
+  } else {
+    el.textContent = `תור ${mk(G.cur)}`;
+  }
+}
+
+// =====================================================
+// BUILD FLAT BOARD (classic / ghost / expand)
+// =====================================================
+function buildFlat() {
+  const sz = G.size;
+  const cont = document.getElementById('board-cont');
+  const avail = Math.min(cont.clientWidth * 0.95, cont.clientHeight * 0.95, sz === 5 ? 460 : 360);
+  const cellPx = Math.floor((avail - (sz+1)*3) / sz);
+
+  const board = document.createElement('div');
+  board.className = `board board-${sz}`;
+  board.style.width = avail + 'px';
+
+  const sk = skin();
+  for (let i = 0; i < sz*sz; i++) {
+    const v = G.board[i];
+    const blocked = (G.blocked[i]||0) > 0;
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.style.width = cellPx+'px';
+    cell.style.fontSize = Math.floor(cellPx * 0.42)+'px';
+
+    // Night vision: hide board unless just revealed
+    const nightHide = G.mode === 'nightvision' && !G.nightRevealed && G.moves > 0;
+
+    // Neutral blocker cell
+    if (G.mode === 'blocker' && G.blockerPos === i) {
+      cell.style.background = 'rgba(100,100,100,0.3)';
+      cell.style.borderColor = 'rgba(150,150,150,0.6)';
+      cell.style.cursor = 'pointer';
+      cell.textContent = '🚧';
+      cell.style.fontSize = Math.floor(cellPx*0.4)+'px';
+      cell.onclick = () => { if (G.cur && !G.over && !(G.vsAI&&G.cur==='O')) { G.blockerSelected = !G.blockerSelected; renderAll(); } };
+      if (G.blockerSelected) cell.style.boxShadow = '0 0 10px rgba(255,165,0,0.8)';
+      board.appendChild(cell); continue;
+    }
+
+    if (nightHide) {
+      cell.style.background = '#000015';
+      cell.style.cursor = 'pointer';
+      cell.onclick = () => flatClick(i);
+      board.appendChild(cell); continue;
+    }
+
+    if (v && (v === 'X' || v === 'O')) {
+      cell.classList.add('taken', v==='X'?'x-mark':'o-mark');
+      // Gobble: show size indicator
+      if (G.mode === 'gobble' && G.gobbleBoard[i]) {
+        const sz2 = G.gobbleBoard[i].size;
+        const scale = sz2===1?0.45:sz2===2?0.65:0.85;
+        cell.style.fontSize = Math.floor(cellPx * scale)+'px';
+      }
+      cell.textContent = v==='X' ? sk.x : sk.o;
+      // Shelf: show fading
+      if (G.mode === 'shelf' && G.shelfTurns[i] !== undefined && G.shelfTurns[i] <= 1) {
+        cell.classList.add('fading');
+      }
+      // Ghost: highlight next-to-disappear
+      if (G.mode === 'ghost') {
+        const xF = G.xQ[0], oF = G.oQ[0];
+        if ((v==='X' && xF===i && G.xQ.length>=G.MAXQ) || (v==='O' && oF===i && G.oQ.length>=G.MAXQ))
+          cell.classList.add('fading');
+      }
+    } else if (v && v.endsWith('?')) {
+      // Quantum pending
+      const qp = v[0]==='X' ? 'x-mark' : 'o-mark';
+      cell.classList.add(qp);
+      cell.style.opacity = '0.45';
+      cell.textContent = v[0]==='X' ? sk.x : sk.o;
+      cell.style.border = '1px dashed currentColor';
+    } else if (blocked) {
+      cell.classList.add('blocked');
+    } else {
+      // Minefield: mines revealed only on hover? — no, hidden until played
+      cell.onclick = () => flatClick(i);
+    }
+
+    // Gobble mode: gobble size selector overlay
+    if (G.mode === 'gobble' && !v && !blocked) {
+      cell.title = 'לחץ לשים כלי (בחר גודל למטה)';
+    }
+
+    board.appendChild(cell);
+  }
+
+  // Gobble size selector row
+  if (G.mode === 'gobble' && !G.over) {
+    const hand = G.gobbleHand[G.cur];
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:6px;margin-top:8px;justify-content:center;width:100%;';
+    [1,2,3].forEach(sz2 => {
+      const btn = document.createElement('button');
+      const has = hand.includes(sz2);
+      btn.style.cssText = `padding:4px 10px;border-radius:5px;border:1px solid ${has?'var(--gold)':'#22224a'};background:${has?(G.gobbleSelectedSize===sz2?'rgba(255,215,0,0.25)':'transparent'):'rgba(0,0,0,0.3)'};color:${has?'var(--gold)':'#5a5a8a'};font-family:'Orbitron',monospace;font-size:0.6rem;cursor:${has?'pointer':'default'};`;
+      btn.textContent = sz2===1?'קטן':sz2===2?'בינוני':'גדול';
+      if (has) btn.onclick = (e) => { e.stopPropagation(); G.gobbleSelectedSize = G.gobbleSelectedSize===sz2?null:sz2; renderAll(); };
+      row.appendChild(btn);
+    });
+    board.after ? board.appendChild(row) : board.parentNode.appendChild(row);
+    // Actually append below board
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText='display:flex;flex-direction:column;align-items:center;gap:6px;';
+    board.parentNode && board.parentNode.querySelector('.gobble-row') && board.parentNode.querySelector('.gobble-row').remove();
+    row.className = 'gobble-row';
+    board._gobbleRow = row;
+  }
+
+  return board;
+}
+
+// =====================================================
+// BUILD ULTIMATE BOARD
+// =====================================================
+function buildUlti() {
+  const cont = document.getElementById('board-cont');
+  const avail = Math.min(cont.clientWidth * 0.95, cont.clientHeight * 0.95, 520);
+  const miniSz = Math.floor((avail - 36) / 3);
+  const cellPx = Math.floor((miniSz - 16) / 3);
+
+  const outer = document.createElement('div');
+  outer.className = 'ultimate-outer';
+  outer.style.width = avail+'px';
+
+  const sk = skin();
+  for (let b = 0; b < 9; b++) {
+    const wrap = document.createElement('div');
+    wrap.className = 'mini-wrap';
+    wrap.style.width = miniSz+'px';
+    wrap.style.height = miniSz+'px';
+
+    const won = G.ubb[b];
+    if (won && won !== 'draw') wrap.classList.add(won==='X'?'won-x':'won-o');
+    if (!won && (G.uActive===-1 || G.uActive===b)) wrap.classList.add('active-board');
+
+    const mini = document.createElement('div');
+    mini.className = 'mini-board';
+
+    for (let c = 0; c < 9; c++) {
+      const v = G.ub[b][c];
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.style.width = cellPx+'px';
+      cell.style.fontSize = Math.floor(cellPx*0.38)+'px';
+      if (v) {
+        cell.classList.add('taken', v==='X'?'x-mark':'o-mark');
+        cell.textContent = v==='X' ? sk.x : sk.o;
+      } else if (!won && (G.uActive===-1||G.uActive===b)) {
+        cell.onclick = () => ultiClick(b, c);
+      } else {
+        cell.style.cursor = 'default';
+      }
+      mini.appendChild(cell);
+    }
+    wrap.appendChild(mini);
+
+    if (won && won !== 'draw') {
+      const ov = document.createElement('div');
+      ov.className = 'mini-won-overlay';
+      ov.style.color = won==='X' ? 'var(--x-color)' : 'var(--o-color)';
+      ov.textContent = won==='X' ? sk.x : sk.o;
+      wrap.appendChild(ov);
+    }
+    outer.appendChild(wrap);
+  }
+  return outer;
+}
+
+// =====================================================
+// FLAT CLICK
+// =====================================================
+function flatClick(i) {
+  if (G.over || (G.blocked[i]||0)>0) return;
+  if (G.vsAI && G.cur==='O') return;
+  if (G.selPU) { applyPU(i); return; }
+  // PowerCard mode: card selected
+  if (G.mode === 'powercard' && G.cardSelected) { if (applyCardOnClick(i)) return; }
+  // Blocker mode: if blockerSelected, move blocker
+  if (G.mode === 'blocker' && G.blockerSelected) {
+    if (G.board[i] !== null) { notify('🚧 בחר תא ריק להזזת הבלוקר'); return; }
+    G.board[G.blockerPos] = null;
+    G.blockerPos = i;
+    G.board[i] = 'N';
+    G.blockerSelected = false;
+    renderAll();
+    nextTurn();
+    return;
+  }
+  // Gobble mode: need size selected
+  if (G.mode === 'gobble') {
+    if (G.gobbleSelectedSize === null) { notify('♟️ בחר גודל כלי קודם!'); return; }
+    const hand = G.gobbleHand[G.cur];
+    if (!hand.includes(G.gobbleSelectedSize)) { notify('♟️ כבר השתמשת בגודל הזה!'); return; }
+    const existing = G.gobbleBoard[i];
+    if (existing && existing.player === G.cur) { notify('♟️ אי אפשר לכסות את עצמך!'); return; }
+    if (existing && existing.size >= G.gobbleSelectedSize) { notify('♟️ הכלי שלך קטן מדי!'); return; }
+    // Place
+    hand.splice(hand.indexOf(G.gobbleSelectedSize),1);
+    G.gobbleBoard[i] = { player: G.cur, size: G.gobbleSelectedSize };
+    G.board[i] = G.cur;
+    G.gobbleSelectedSize = null;
+    G.moves++;
+    tickBlocked();
+    renderAll();
+    popCell(i);
+    const winner = checkWinFlat(G.board, G.size, G.wlen);
+    if (winner) { endWin(winner); return; }
+    if (G.board.every(c=>c)) { endDraw(); return; }
+    nextTurn();
+    return;
+  }
+  // Quantum mode: pick 2 cells
+  if (G.mode === 'quantum') {
+    if (G.board[i]) { notify('⚛️ תא תפוס!'); return; }
+    if (G.quantumFirst === null) {
+      G.quantumFirst = i;
+      notify('⚛️ בחר תא שני לסימן קוונטי');
+      renderAll();
+    } else {
+      if (i === G.quantumFirst) { notify('⚛️ בחר תא שני שונה!'); return; }
+      // Place quantum pending
+      G.quantumPending.push({ player: G.cur, cells: [G.quantumFirst, i] });
+      G.board[G.quantumFirst] = G.cur + '?';
+      G.board[i] = G.cur + '?';
+      G.quantumFirst = null;
+      G.moves++;
+      // Check if any cell has 2 quantum marks → collapse
+      collapseQuantum();
+      renderAll();
+      nextTurn();
+    }
+    return;
+  }
+  if (G.board[i]) return;
+  // Minefield check
+  if (G.mode === 'minefield' && G.mines.includes(i)) {
+    notify('💥 BOOM! מוקש! התור שלך מתבטל!');
+    G.mines.splice(G.mines.indexOf(i),1);
+    nextTurn();
+    return;
+  }
+  doFlatMove(i);
+}
+
+function doFlatMove(i) {
+  stopTimer();
+  const p = G.cur;
+
+  // Ghost mode: manage queue
+  if (G.mode === 'ghost') {
+    const q = p==='X' ? G.xQ : G.oQ;
+    if (q.length >= G.MAXQ) {
+      const old = q.shift();
+      G.board[old] = null;
+      delete G.shelfTurns[old];
+    }
+    q.push(i);
+  }
+
+  G.board[i] = p;
+  G.moves++;
+
+  // Shelf life: track TTL
+  if (G.mode === 'shelf') {
+    G.shelfTurns[i] = G.SHELF_TTL;
+  }
+
+  tickBlocked();
+  tickShelf();
+  chaosShuffle();
+
+  // Gravity
+  if (G.mode === 'gravity') applyGravity();
+
+  // Flip mode: if center cell played, flip all
+  if (G.mode === 'flip' && i === 4) flipAllMarks();
+
+  // Expand mode: check if should expand
+  if (G.mode === 'expand' && !G.expanded) checkExpand();
+
+  renderAll();
+
+  // Night vision: reveal briefly then hide
+  if (G.mode === 'nightvision') {
+    clearTimeout(G.nightHideTimer);
+    G.nightRevealed = true;
+    renderAll();
+    G.nightHideTimer = setTimeout(()=>{
+      G.nightRevealed = false;
+      renderAll();
+    }, 1000);
+  }
+
+  popCell(i);
+
+  const winner = checkWinFlat(G.board.map(v=>v&&v.includes('?')?null:v), G.size, G.wlen);
+
+  // Points mode
+  if (G.mode === 'points') {
+    const newWins = countAllLines(G.board, G.size, G.wlen);
+    G.pointsSc = newWins;
+    renderAll();
+    if (G.board.filter(c=>c).length === G.size*G.size) {
+      // board full
+      const w = G.pointsSc.X > G.pointsSc.O ? 'X' : G.pointsSc.O > G.pointsSc.X ? 'O' : null;
+      if (w) endWin(w); else endDraw();
+      return;
+    }
+    nextTurn();
+    return;
+  }
+
+  if (winner) { endWin(winner); return; }
+  if (G.mode !== 'ghost' && G.mode !== 'quantum' && G.board.every(c=>c)) { endDraw(); return; }
+
+  nextTurn();
+}
+
+// =====================================================
+// ULTI CLICK
+// =====================================================
+function ultiClick(b, c) {
+  if (G.over) return;
+  if (G.vsAI && G.cur==='O') return;
+  if (G.ubb[b] || G.ub[b][c]) return;
+  if (G.uActive !== -1 && G.uActive !== b) return;
+  doUltiMove(b, c);
+}
+
+function doUltiMove(b, c) {
+  stopTimer();
+  const p = G.cur;
+  G.ub[b][c] = p;
+  G.moves++;
+
+  const miniWin = checkWinFlat(G.ub[b], 3, 3);
+  if (miniWin) G.ubb[b] = miniWin;
+  else if (G.ub[b].every(v=>v)) G.ubb[b] = 'draw';
+
+  // Next active board
+  if (G.ubb[c] || G.ub[c].every(v=>v)) G.uActive = -1;
+  else G.uActive = c;
+
+  renderAll();
+
+  const bigWin = checkWinFlat(G.ubb.map(v=>v==='draw'?null:v), 3, 3);
+  if (bigWin) { endWin(bigWin); return; }
+  if (G.ubb.every(v=>v)) { endDraw(); return; }
+
+  nextTurn();
+}
+
+// =====================================================
+// NEXT TURN
+// =====================================================
+function nextTurn() {
+  if (G.mode === 'powercard' && G.doublePlay) {
+    G.doublePlay = false;
+    notify(`${G.cur} שוב! כרטיס פעמיים!`);
+    updateCardBtns();
+    updateStatus();
+    if (G.blitz) startTimer();
+    return;
+  }
+  G.cur = G.cur==='X' ? 'O' : 'X';
+  document.getElementById('panel-x').classList.toggle('active', G.cur==='X');
+  document.getElementById('panel-o').classList.toggle('active', G.cur==='O');
+  updateStatus();
+  if (G.pu && G.mode !== 'ultimate') updatePUbtns();
+  if (G.mode === 'powercard') updateCardBtns();
+  if (G.blitz) startTimer();
+  if (G.vsAI && G.cur==='O' && !G.over) schedAI();
+}
+
+// =====================================================
+// EXPAND MODE
+// =====================================================
+function checkExpand() {
+  const lines = winLines(3, 3);
+  const almost = lines.some(ln => {
+    const vs = ln.map(i => G.board[i]);
+    const x = vs.filter(v=>v==='X').length, o = vs.filter(v=>v==='O').length;
+    return (x===2&&o===0)||(o===2&&x===0);
+  });
+  if (!almost) return;
+
+  const old = G.board.slice(), oldSz = G.size;
+  G.size = 5; G.wlen = 4;
+  G.board = Array(25).fill(null);
+  G.expanded = true;
+  const off = 1; // (5-3)/2
+  for (let r=0;r<3;r++) for (let c=0;c<3;c++)
+    G.board[(r+off)*5+(c+off)] = old[r*3+c];
+  if (G.mode==='ghost') {
+    G.xQ = G.xQ.map(i => { const r=Math.floor(i/3),c=i%3; return (r+off)*5+(c+off); });
+    G.oQ = G.oQ.map(i => { const r=Math.floor(i/3),c=i%3; return (r+off)*5+(c+off); });
+  }
+  notify('📡 הלוח התרחב ל-5×5 · צריך 4 ברצף!');
+}
+
+// =====================================================
+// SHELF LIFE
+// =====================================================
+function tickShelf() {
+  if (G.mode !== 'shelf') return;
+  const toDelete = [];
+  for (const k in G.shelfTurns) {
+    G.shelfTurns[k]--;
+    if (G.shelfTurns[k] <= 0) toDelete.push(+k);
+  }
+  toDelete.forEach(k => { delete G.shelfTurns[k]; G.board[k] = null; });
+}
+
+// =====================================================
+// GRAVITY
+// =====================================================
+function applyGravity() {
+  const sz = G.size;
+  for (let c=0; c<sz; c++) {
+    // collect column values bottom-to-top
+    const col = [];
+    for (let r=sz-1; r>=0; r--) col.push(G.board[r*sz+c]);
+    // compact: move non-null to bottom
+    const filled = col.filter(v=>v!==null);
+    const newCol = [...Array(sz-filled.length).fill(null), ...filled];
+    // Wait, gravity = fall down = last row is bottom
+    // col[0]=bottom row, col[sz-1]=top row after reversal... let's redo:
+    const colDown = [];
+    for (let r=0; r<sz; r++) colDown.push(G.board[r*sz+c]);
+    const filledDown = colDown.filter(v=>v!==null);
+    const newColDown = [...Array(sz-filledDown.length).fill(null), ...filledDown];
+    for (let r=0; r<sz; r++) G.board[r*sz+c] = newColDown[r];
+  }
+  notify('🌍 כבידה! הכלים נפלו מטה');
+}
+
+// =====================================================
+// QUANTUM COLLAPSE
+// =====================================================
+function collapseQuantum() {
+  // check if a cell has 2 quantum marks from different pending entries
+  const cellCount = {};
+  G.quantumPending.forEach(q => q.cells.forEach(c => {
+    cellCount[c] = (cellCount[c]||0) + 1;
+  }));
+  const collapseCells = Object.keys(cellCount).filter(c=>cellCount[c]>=2).map(Number);
+  if (!collapseCells.length) return;
+  // collapse: pick random cell from each pending quantum mark
+  G.quantumPending.forEach(q => {
+    const chosen = q.cells[Math.floor(Math.random()*q.cells.length)];
+    const other = q.cells.find(c=>c!==chosen);
+    G.board[chosen] = q.player;
+    if (G.board[other] === q.player + '?') G.board[other] = null;
+  });
+  G.quantumPending = [];
+  notify('⚛️ קולאפס קוונטי! הסימנים התייצבו');
+}
+
+// =====================================================
+// FLIP MODE
+// =====================================================
+function flipAllMarks() {
+  G.board = G.board.map(v => {
+    if (v === 'X') return 'O';
+    if (v === 'O') return 'X';
+    return v;
+  });
+  // also gobble board if needed
+  Object.keys(G.gobbleBoard).forEach(k => {
+    const gb = G.gobbleBoard[k];
+    if (gb) gb.player = gb.player === 'X' ? 'O' : 'X';
+  });
+  notify('🔄 הפיכה! כל הסימנים התחלפו!');
+}
+
+// =====================================================
+// COUNT ALL LINES (points mode)
+// =====================================================
+function countAllLines(board, sz, wl) {
+  const sc = {X:0, O:0};
+  for (const ln of winLines(sz, wl)) {
+    const f = board[ln[0]];
+    if (f && (f==='X'||f==='O') && ln.every(i=>board[i]===f)) sc[f]++;
+  }
+  return sc;
+}
+
+// =====================================================
+// WIN CHECKING
+// =====================================================
+function winLines(sz, wl) {
+  const lines = [], n = sz;
+  for (let r=0;r<n;r++) for (let c=0;c<=n-wl;c++) lines.push([...Array(wl)].map((_,k)=>r*n+c+k));
+  for (let c=0;c<n;c++) for (let r=0;r<=n-wl;r++) lines.push([...Array(wl)].map((_,k)=>(r+k)*n+c));
+  for (let r=0;r<=n-wl;r++) for (let c=0;c<=n-wl;c++) lines.push([...Array(wl)].map((_,k)=>(r+k)*n+c+k));
+  for (let r=0;r<=n-wl;r++) for (let c=wl-1;c<n;c++) lines.push([...Array(wl)].map((_,k)=>(r+k)*n+c-k));
+  return lines;
+}
+
+function checkWinFlat(board, sz, wl) {
+  // For wrap mode, also check wrap-around rows
+  const lines = winLines(sz, wl);
+  if (G && G.mode === 'wrap') {
+    // Add horizontal wrap-around lines
+    for (let r=0; r<sz; r++) {
+      for (let sc2=0; sc2<sz; sc2++) {
+        const line = Array.from({length:wl},(_,k)=>[r, (sc2+k)%sz]).map(([row,col])=>row*sz+col);
+        lines.push(line);
+      }
+    }
+  }
+  for (const ln of lines) {
+    const f = board[ln[0]];
+    if (f && (f==='X'||f==='O') && ln.every(i=>board[i]===f)) return f;
+  }
+  return null;
+}
+
+function getWinLine(board, sz, wl) {
+  for (const ln of winLines(sz, wl)) {
+    const f = board[ln[0]];
+    if (f && ln.every(i=>board[i]===f)) return ln;
+  }
+  return null;
+}
+
+// =====================================================
+// WIN / DRAW
+// =====================================================
+function endWin(winner) {
+  G.over = true; stopTimer();
+  G.sc[winner]++;
+
+  if (G.mode !== 'ultimate') {
+    const ln = getWinLine(G.board, G.size, G.wlen);
+    if (ln) setTimeout(()=>{
+      document.querySelectorAll('.board .cell')[ln[0]] && ln.forEach(i => {
+        const cells = document.querySelectorAll('.board .cell');
+        if (cells[i]) cells[i].classList.add('win-cell');
+      });
+    }, 50);
+  }
+
+  const isPlayerWin = !G.vsAI || winner === 'X';
+  if (isPlayerWin) { addXP(50); P.wins++; saveP(); }
+
+  const sk = skin();
+  setTimeout(()=>{
+    document.getElementById('go-label').textContent = winner==='X' ? '🏆 ניצחון!' : (G.vsAI?'🤖 AI ניצח!':'🏆 ניצחון!');
+    document.getElementById('go-mark').textContent = winner==='X' ? sk.x : sk.o;
+    document.getElementById('go-mark').className = 'go-mark ' + winner.toLowerCase();
+    document.getElementById('go-name').textContent = winner==='X' ? 'שחקן X ניצח!' : (G.vsAI?'ה-AI ניצח!':'שחקן O ניצח!');
+    document.getElementById('go-xp').textContent = isPlayerWin ? '+50 XP 🎉' : '';
+    showScreen('gameover');
+  }, 900);
+}
+
+function endDraw() {
+  G.over = true; stopTimer();
+  G.sc.d++;
+  addXP(15);
+  setTimeout(()=>{
+    document.getElementById('go-label').textContent = '🤝 תיקו!';
+    document.getElementById('go-mark').textContent = '—';
+    document.getElementById('go-mark').className = 'go-mark draw';
+    document.getElementById('go-name').textContent = 'אף אחד לא ניצח';
+    document.getElementById('go-xp').textContent = '+15 XP';
+    showScreen('gameover');
+  }, 500);
+}
+
+// =====================================================
+// POWER-UPS
+// =====================================================
+function updatePUbtns() {
+  ['X','O'].forEach(p => {
+    ['bomb','block'].forEach(t => {
+      const key = p.toLowerCase();
+      const btn = document.getElementById(`pu-${key}-${t}`);
+      const badge = document.getElementById(`pb-${key}-${t}`);
+      if (!btn) return;
+      badge.textContent = G.power[p][t];
+      btn.disabled = G.power[p][t]===0 || G.cur!==p || G.over;
+      btn.classList.toggle('selected', !!(G.selPU && G.selPU.p===p && G.selPU.t===t));
+    });
+  });
+}
+
+function updateCardBtns() {
+  if (G.mode !== 'powercard') return;
+  ['X','O'].forEach(p => {
+    ['move','block1','double'].forEach(c => {
+      const key = p.toLowerCase();
+      const btn = document.getElementById(`pc-${key}-${c}`);
+      if (!btn) return;
+      const has = G.cards[p] && G.cards[p].includes(c);
+      btn.disabled = !has || G.cur!==p || G.over;
+      btn.classList.toggle('selected', !!(G.cardSelected && G.cardSelected.p===p && G.cardSelected.c===c));
+      btn.style.opacity = has ? '1' : '0.25';
+    });
+  });
+}
+
+function useCard(p, c) {
+  if (G.mode !== 'powercard') return;
+  if (G.cur !== p || G.over) return;
+  if (!G.cards[p] || !G.cards[p].includes(c)) return;
+  // Toggle selection
+  if (G.cardSelected && G.cardSelected.p===p && G.cardSelected.c===c) {
+    G.cardSelected = null; G.doublePlay = false;
+    updateCardBtns(); updateStatus(); return;
+  }
+  if (c === 'double') {
+    G.cards[p].splice(G.cards[p].indexOf('double'),1);
+    G.doublePlay = true;
+    G.cardSelected = null;
+    notify(`×2 ${p} ישחק פעמיים!`);
+    updateCardBtns(); updateStatus();
+    return;
+  }
+  G.cardSelected = {p, c};
+  updateCardBtns(); updateStatus();
+}
+
+function applyCardOnClick(i) {
+  if (!G.cardSelected) return false;
+  const {p, c} = G.cardSelected;
+  const opp = p==='X'?'O':'X';
+  if (c === 'move') {
+    if (G.board[i] !== opp) { notify('↔️ לחץ על כלי של היריב!'); return true; }
+    // move opponent piece: remove it
+    G.board[i] = null;
+    if (G.mode==='ghost') {
+      const q = opp==='X'?G.xQ:G.oQ;
+      const idx = q.indexOf(i); if(idx!==-1) q.splice(idx,1);
+    }
+    G.cards[p].splice(G.cards[p].indexOf('move'),1);
+    notify('↔️ כלי היריב הוזז!');
+  } else if (c === 'block1') {
+    if (G.board[i]) { notify('🧱 בחר תא ריק!'); return true; }
+    G.blocked[i] = 2;
+    G.cards[p].splice(G.cards[p].indexOf('block1'),1);
+    notify('🧱 משבצת נחסמה!');
+  }
+  G.cardSelected = null;
+  renderAll();
+  nextTurn();
+  return true;
+}
+
+function selPU(p, t) {
+  if (G.cur!==p || G.power[p][t]===0 || G.over) return;
+  G.selPU = (G.selPU && G.selPU.p===p && G.selPU.t===t) ? null : {p, t};
+  updatePUbtns();
+  updateStatus();
+}
+
+function applyPU(i) {
+  const {p, t} = G.selPU;
+  const opp = p==='X'?'O':'X';
+  if (t==='bomb') {
+    if (G.board[i]!==opp) { notify('💣 לחץ על סימן של היריב!'); return; }
+    G.board[i] = null;
+    if (G.mode==='ghost') {
+      const q = opp==='X' ? G.xQ : G.oQ;
+      const idx = q.indexOf(i); if (idx!==-1) q.splice(idx,1);
+    }
+    G.power[p].bomb--;
+    notify('💣 פצצה! הסימן של היריב נמחק');
+  } else {
+    if (G.board[i]) { notify('🛡️ בחר תא ריק!'); return; }
+    G.blocked[i] = 2;
+    G.power[p].block--;
+    notify('🛡️ תא נחסם לסיבוב!');
+  }
+  G.selPU = null;
+  renderAll();
+  nextTurn();
+}
+
+function tickBlocked() {
+  for (const k in G.blocked) {
+    G.blocked[k]--;
+    if (G.blocked[k]<=0) delete G.blocked[k];
+  }
+}
+
+// =====================================================
+// ANIMATION
+// =====================================================
+function popCell(idx) {
+  setTimeout(()=>{
+    const cells = document.querySelectorAll('.board .cell');
+    if (cells[idx]) {
+      cells[idx].classList.add('pop');
+      cells[idx].addEventListener('animationend', ()=>cells[idx].classList.remove('pop'), {once:true});
+    }
+  }, 10);
+}
+
+// =====================================================
+// TIMER
+// =====================================================
+function startTimer() {
+  stopTimer();
+  G.tLeft = G.blitz;
+  updTmr();
+  G.tInt = setInterval(()=>{
+    G.tLeft--;
+    updTmr();
+    if (G.tLeft<=0) {
+      stopTimer();
+      notify('⏰ זמן נגמר! עובר תור');
+      nextTurn();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (G && G.tInt) { clearInterval(G.tInt); G.tInt = null; }
+}
+
+function updTmr() {
+  const el = document.getElementById('tmr');
+  el.textContent = G.tLeft;
+  el.classList.toggle('urgent', G.tLeft<=2);
+}
+
+// =====================================================
+// AI
+// =====================================================
+function schedAI() { setTimeout(doAI, 350 + Math.random()*300); }
+
+function doAI() {
+  if (G.over || G.cur!=='O') return;
+  if (G.mode==='ultimate') { doAIUlti(); return; }
+
+  let idx;
+  switch(G.aiP) {
+    case 'aggressive': idx = aiAggressive(); break;
+    case 'defensive':  idx = aiDefensive(); break;
+    case 'clumsy':     idx = aiClumsy(); break;
+    default:           idx = aiBalanced(); break;
+  }
+  if (idx!=null) doFlatMove(idx);
+}
+
+function empties() { return G.board.map((v,i)=>v?null:((G.blocked[i]||0)>0?null:i)).filter(i=>i!=null); }
+
+function aiBalanced() {
+  if (G.size===3 && G.mode==='classic') return mmBest();
+  return heuristic();
+}
+function aiAggressive() { return findWin('O') ?? findWin('X') ?? heuristic(); }
+function aiDefensive()  { return findWin('X') ?? findWin('O') ?? heuristic(); }
+function aiClumsy() {
+  if (Math.random()<0.28) { const e=empties(); return e[Math.floor(Math.random()*e.length)]??null; }
+  return aiBalanced();
+}
+
+function findWin(p) {
+  for (const i of empties()) {
+    G.board[i]=p;
+    const w=checkWinFlat(G.board,G.size,G.wlen);
+    G.board[i]=null;
+    if (w) return i;
+  }
+  return null;
+}
+
+function heuristic() {
+  const e=empties();
+  if (!e.length) return null;
+  let best=-Infinity, bIdx=e[0];
+  for (const i of e) {
+    let sc=0;
+    G.board[i]='O'; if(checkWinFlat(G.board,G.size,G.wlen)){G.board[i]=null;return i;} G.board[i]=null;
+    G.board[i]='X'; if(checkWinFlat(G.board,G.size,G.wlen)){G.board[i]=null;sc+=900;} G.board[i]=null;
+    const r=Math.floor(i/G.size),c=i%G.size,mid=Math.floor(G.size/2);
+    sc += 8-(Math.abs(r-mid)+Math.abs(c-mid))*2;
+    if(sc>best){best=sc;bIdx=i;}
+  }
+  return bIdx;
+}
+
+// Minimax 3×3
+function mmBest() {
+  let best=-Infinity, bi=null;
+  for (let i=0;i<9;i++) {
+    if(!G.board[i]){
+      G.board[i]='O';
+      const sc=mm(G.board,0,false,-Infinity,Infinity);
+      G.board[i]=null;
+      if(sc>best){best=sc;bi=i;}
+    }
+  }
+  return bi;
+}
+function mm(b,d,isMax,a,bta) {
+  const w=checkWinFlat(b,3,3);
+  if(w==='O') return 10-d;
+  if(w==='X') return d-10;
+  if(b.every(c=>c)) return 0;
+  if(isMax){
+    let v=-Infinity;
+    for(let i=0;i<9;i++){if(!b[i]){b[i]='O';v=Math.max(v,mm(b,d+1,false,a,bta));b[i]=null;a=Math.max(a,v);if(bta<=a)break;}}
+    return v;
+  } else {
+    let v=Infinity;
+    for(let i=0;i<9;i++){if(!b[i]){b[i]='X';v=Math.min(v,mm(b,d+1,true,a,bta));b[i]=null;bta=Math.min(bta,v);if(bta<=a)break;}}
+    return v;
+  }
+}
+
+// AI for Ultimate
+function doAIUlti() {
+  const validB = [];
+  for (let b=0;b<9;b++) {
+    if (!G.ubb[b] && (G.uActive===-1||G.uActive===b)) {
+      const ec = G.ub[b].map((v,i)=>v?null:i).filter(i=>i!=null);
+      if (ec.length) validB.push({b, ec});
+    }
+  }
+  if (!validB.length) return;
+
+  // Win a mini board
+  for (const {b,ec} of validB) for (const c of ec) {
+    const t=[...G.ub[b]]; t[c]='O';
+    if (checkWinFlat(t,3,3)) { doUltiMove(b,c); return; }
+  }
+  // Block opponent mini board win
+  for (const {b,ec} of validB) for (const c of ec) {
+    const t=[...G.ub[b]]; t[c]='X';
+    if (checkWinFlat(t,3,3)) { doUltiMove(b,c); return; }
+  }
+  // Prefer center of board
+  const ch = validB[0];
+  const c = ch.ec.includes(4) ? 4 : ch.ec[Math.floor(Math.random()*ch.ec.length)];
+  doUltiMove(ch.b, c);
+}
+
+// =====================================================
+// XP & LEVELS
+// =====================================================
+function addXP(amt) {
+  P.xp += amt;
+  while (P.xp >= XP_PER_LV) {
+    P.xp -= XP_PER_LV;
+    P.level++;
+    notify(`🎉 עלית לרמה ${P.level}!`);
+    SKINS.forEach(sk => {
+      if (P.level >= sk.req && !P.unlocked.includes(sk.id)) {
+        P.unlocked.push(sk.id);
+        setTimeout(()=>notify(`🎨 סקין חדש נפתח: ${sk.name}!`), 1500);
+      }
+    });
+  }
+  saveP();
+}
+
+// =====================================================
+// SHOP
+// =====================================================
+function renderShop() {
+  document.getElementById('sh-lv').textContent = P.level;
+  document.getElementById('sh-xp-info').textContent = `${P.xp} / ${XP_PER_LV} XP`;
+  document.getElementById('sh-xp-bar').style.width = (P.xp/XP_PER_LV*100)+'%';
+
+  const grid = document.getElementById('sh-grid');
+  grid.innerHTML = '';
+  SKINS.forEach(sk => {
+    const ul = P.unlocked.includes(sk.id);
+    const sel = P.skin === sk.id;
+    const card = document.createElement('div');
+    card.className = 'skin-card' + (ul?' unlocked':'  locked') + (sel?' selected':'');
+    card.innerHTML = `
+      ${!ul?`<span class="lock-ico">🔒</span>`:''}
+      <div class="sk-prev">${sk.x} ${sk.o}</div>
+      <div class="sk-name">${sk.name}</div>
+      ${!ul?`<div class="sk-req">רמה ${sk.req}</div>`:''}
+      ${sel?`<div class="sk-req">✓ נבחר</div>`:''}
+    `;
+    if (ul) card.onclick = () => { P.skin = sk.id; saveP(); renderShop(); };
+    grid.appendChild(card);
+  });
+}
+
+// =====================================================
+// NOTIFICATION
+// =====================================================
+function notify(txt) {
+  document.querySelectorAll('.notif').forEach(e=>e.remove());
+  const el = document.createElement('div');
+  el.className = 'notif';
+  el.textContent = txt;
+  document.body.appendChild(el);
+  setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>el.remove(),300); }, 2600);
+}
+
+
+// =====================================================
+// SUDDEN DEATH MODE
+// =====================================================
+function checkSuddenDeath(winner) {
+  if (G.mode !== 'sudden') return false;
+  if (winner) {
+    G.sc[winner]++;
+    G.over = true;
+    const loser = winner === 'X' ? 'O' : 'X';
+    setTimeout(() => {
+      document.getElementById('go-mark').textContent = mk(winner);
+      document.getElementById('go-mark').className = 'go-mark ' + winner.toLowerCase();
+      document.getElementById('go-name').textContent = '☠️ ניצחון מוחץ!';
+      document.getElementById('go-xp').textContent = '+80 XP';
+      addXP(80);
+      showScreen('gameover');
+    }, 500);
+    return true;
+  }
+  return false;
+}
+
+// =====================================================
+// CHAOS MODE - shuffle random cells every 3 moves
+// =====================================================
+function chaosShuffle() {
+  if (G.mode !== 'chaos') return;
+  if (G.moves % 3 !== 0 || G.moves === 0) return;
+  // pick 2 random non-winning cells and swap them
+  const filled = G.board.map((v,i)=>v?i:null).filter(i=>i!==null);
+  if (filled.length < 2) return;
+  const a = filled[Math.floor(Math.random()*filled.length)];
+  let b;
+  do { b = filled[Math.floor(Math.random()*filled.length)]; } while (b === a);
+  [G.board[a], G.board[b]] = [G.board[b], G.board[a]];
+  notify('🌀 כאוס! שני תאים התחלפו!');
+}
+
+// =====================================================
+// MARATHON MODE - first to 5 wins
+// =====================================================
+function checkMarathon(winner) {
+  if (G.mode !== 'marathon') return false;
+  if (winner) {
+    G.sc[winner]++;
+    if (G.sc[winner] >= 5) {
+      G.over = true;
+      setTimeout(() => {
+        document.getElementById('go-mark').textContent = mk(winner);
+        document.getElementById('go-mark').className = 'go-mark ' + winner.toLowerCase();
+        document.getElementById('go-name').textContent = '🏆 ראשון ל-5 ניצחונות!';
+        document.getElementById('go-xp').textContent = '+120 XP';
+        addXP(120);
+        showScreen('gameover');
+      }, 500);
+      return true;
+    }
+    // reset board, keep scores
+    setTimeout(() => {
+      const sc = G.sc;
+      G = newState();
+      G.sc = sc;
+      G.mode = 'marathon';
+      G.size = 5; G.wlen = 4;
+      G.board = Array(25).fill(null);
+      renderAll();
+      initGameUI();
+      notify(`🏆 ${mk(winner)} מוביל ${G.sc[winner]}-${G.sc[winner==='X'?'O':'X']} · עוד ${5-G.sc[winner]} לניצחון!`);
+    }, 800);
+    return true;
+  }
+  return false;
+}
+
+// =====================================================
+// ADMIN
+// =====================================================
+const ADMIN_CODE = 'admin 2050';
+const ADMIN2_CODE = 'liavboom';
+
+function openAdminPrompt() {
+  document.getElementById('admin-overlay').classList.remove('hidden');
+  document.getElementById('admin-prompt-box').classList.remove('hidden');
+  document.getElementById('admin-panel-box').classList.add('hidden');
+  document.getElementById('admin2-panel-box').classList.add('hidden');
+  document.getElementById('admin-err').textContent = '';
+  setTimeout(()=>document.getElementById('admin-code-input').focus(), 100);
+}
+
+function closeAdminPrompt() {
+  document.getElementById('admin-overlay').classList.add('hidden');
+  document.getElementById('admin-prompt-box').classList.add('hidden');
+  document.getElementById('admin-panel-box').classList.add('hidden');
+  document.getElementById('admin2-prompt-box').classList.add('hidden');
+  document.getElementById('admin2-panel-box').classList.add('hidden');
+  document.getElementById('admin-code-input').value = '';
+  document.getElementById('admin-err').textContent = '';
+  document.getElementById('admin2-code-input').value = '';
+  document.getElementById('admin2-login-err').textContent = '';
+}
+
+function openAdmin2Prompt() {
+  document.getElementById('admin-overlay').classList.remove('hidden');
+  document.getElementById('admin2-prompt-box').classList.remove('hidden');
+  document.getElementById('admin-prompt-box').classList.add('hidden');
+  document.getElementById('admin-panel-box').classList.add('hidden');
+  document.getElementById('admin2-panel-box').classList.add('hidden');
+  document.getElementById('admin2-login-err').textContent = '';
+  setTimeout(()=>document.getElementById('admin2-code-input').focus(), 100);
+}
+
+function submitAdmin2Code() {
+  const val = document.getElementById('admin2-code-input').value.trim();
+  if (val === ADMIN2_CODE) {
+    document.getElementById('admin2-prompt-box').classList.add('hidden');
+    document.getElementById('admin2-panel-box').classList.remove('hidden');
+    renderAdmin2Stats();
+  } else {
+    const inp = document.getElementById('admin2-code-input');
+    inp.style.borderColor = '#ff3333';
+    document.getElementById('admin2-login-err').textContent = '✕ קוד שגוי — גישה נדחתה';
+    inp.value = '';
+  }
+}
+
+function submitAdminCode() {
+  const val = document.getElementById('admin-code-input').value.trim();
+  if (val === ADMIN_CODE) {
+    document.getElementById('admin-prompt-box').classList.add('hidden');
+    document.getElementById('admin-panel-box').classList.remove('hidden');
+    renderAdminStats();
+  } else {
+    const inp = document.getElementById('admin-code-input');
+    inp.style.borderColor = '#ff3333';
+    document.getElementById('admin-err').textContent = '✕ קוד שגוי — גישה נדחתה';
+    inp.value = '';
+  }
+}
+
+function renderAdminStats() {
+  const stats = [
+    { val: P.level, lbl: 'רמה' },
+    { val: P.xp + ' XP', lbl: 'ניסיון' },
+    { val: P.unlocked.length, lbl: 'סקינים פתוחים' },
+    { val: (typeof G !== 'undefined' && G.scores) ? (G.scores.X||0)+'-'+(G.scores.O||0) : '0-0', lbl: 'תוצאה נוכחית' },
+  ];
+  document.getElementById('admin-stats').innerHTML = stats.map(s=>`
+    <div style="background:#06060f;border:1px solid #22224a;border-radius:6px;padding:0.5rem;text-align:center;">
+      <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:#ffd700;">${s.val}</div>
+      <div style="font-family:'Orbitron',monospace;font-size:0.45rem;letter-spacing:0.1em;color:#5a5a8a;margin-top:0.1rem;">${s.lbl}</div>
+    </div>`).join('');
+}
+
+function adminMsg(txt) {
+  const el = document.getElementById('admin-msg');
+  el.textContent = txt;
+  setTimeout(()=>{ el.textContent=''; }, 2500);
+}
+
+function adminAddXP(amt) {
+  addXP(amt);
+  renderAdminStats();
+  document.getElementById('menu-lv').textContent = P.level;
+  adminMsg('✅ נוספו ' + amt + ' XP · רמה ' + P.level);
+}
+
+function adminLevelUp() {
+  addXP(XP_PER_LV);
+  renderAdminStats();
+  document.getElementById('menu-lv').textContent = P.level;
+  adminMsg('⬆️ עלית לרמה ' + P.level + '!');
+}
+
+function adminUnlockAll() {
+  SKINS.forEach(sk=>{ if(!P.unlocked.includes(sk.id)) P.unlocked.push(sk.id); });
+  saveP();
+  renderAdminStats();
+  adminMsg('🎨 כל הסקינים נפתחו!');
+}
+
+function adminReset() {
+  if (!confirm('האם אתה בטוח? כל הנתונים יימחקו!')) return;
+  localStorage.removeItem('cyberXO_p');
+  location.reload();
+}
+
+function adminUnlockModes() {
+  document.querySelectorAll('.admin-mode').forEach(el => el.classList.remove('hidden'));
+  P.secretModes = true; saveP();
+  adminMsg('🔓 מצבי משחק סודיים נפתחו!');
+  renderAdminStats();
+}
+
+function adminLockModes() {
+  document.querySelectorAll('.admin-mode').forEach(el => el.classList.add('hidden'));
+  P.secretModes = false; saveP();
+  adminMsg('🔒 מצבי משחק סודיים הוסתרו');
+}
+
+// =====================================================
+// ADMIN2 (liavboom)
+// =====================================================
+const ADMIN2_MODES = ['gobble','wrap','minefield','shelf','quantum','gravity','powercard','blocker','points','nightvision','flip'];
+// Note: 'ultimate2' maps to the existing always-visible 'ultimate' mode
+
+function renderAdmin2Stats() {
+  const stats = [
+    { val: P.level, lbl: 'רמה' },
+    { val: P.xp + ' XP', lbl: 'ניסיון' },
+    { val: P.wins || 0, lbl: 'ניצחונות' },
+    { val: P.unlocked.length, lbl: 'סקינים' },
+  ];
+  document.getElementById('admin2-stats').innerHTML = stats.map(s=>`
+    <div style="background:#06060f;border:1px solid #22224a;border-radius:6px;padding:0.5rem;text-align:center;">
+      <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:#ff00ff;text-shadow:0 0 6px #ff00ff;">${s.val}</div>
+      <div style="font-family:'Orbitron',monospace;font-size:0.45rem;letter-spacing:0.1em;color:#5a5a8a;margin-top:0.1rem;">${s.lbl}</div>
+    </div>`).join('');
+  // Update mode button active states
+  ADMIN2_MODES.forEach(m => {
+    const btn = document.getElementById('a2btn-'+m);
+    if (btn) btn.classList.toggle('enabled', !!P['mode_'+m]);
+  });
+}
+
+function admin2Msg(txt) {
+  const el = document.getElementById('admin2-msg');
+  el.textContent = txt;
+  setTimeout(()=>{ el.textContent=''; }, 2500);
+}
+
+function admin2ToggleMode(m) {
+  const key = 'mode_'+m;
+  P[key] = !P[key];
+  const el = document.getElementById('mode-btn-'+m);
+  if (el) el.classList.toggle('hidden', !P[key]);
+  saveP();
+  renderAdmin2Stats();
+  admin2Msg(P[key] ? `✅ מצב ${m.toUpperCase()} נפתח!` : `❌ מצב ${m.toUpperCase()} הוסתר`);
+}
+
+function admin2EnableAll() {
+  ADMIN2_MODES.forEach(m => {
+    P['mode_'+m] = true;
+    const el = document.getElementById('mode-btn-'+m);
+    if (el) el.classList.remove('hidden');
+  });
+  saveP();
+  renderAdmin2Stats();
+  admin2Msg('✅ כל 12 המצבים נפתחו!');
+}
+
+function admin2DisableAll() {
+  ADMIN2_MODES.forEach(m => {
+    P['mode_'+m] = false;
+    const el = document.getElementById('mode-btn-'+m);
+    if (el) el.classList.add('hidden');
+  });
+  saveP();
+  renderAdmin2Stats();
+  admin2Msg('❌ כל המצבים הוסתרו');
+}
+
+function admin2SetLevel() {
+  const val = parseInt(document.getElementById('admin2-level-input').value);
+  if (isNaN(val) || val < 1) { admin2Msg('⚠️ הכנס מספר תקין!'); return; }
+  P.level = val;
+  // Unlock skins for level
+  SKINS.forEach(sk => { if (P.level >= sk.req && !P.unlocked.includes(sk.id)) P.unlocked.push(sk.id); });
+  saveP();
+  document.getElementById('menu-lv').textContent = P.level;
+  renderAdmin2Stats();
+  admin2Msg(`⬆️ רמה הוגדרה ל-${P.level}!`);
+}
+
+// =====================================================
+// INIT
+// =====================================================
+document.getElementById('menu-lv').textContent = P.level;
+if (P.secretModes) document.querySelectorAll('.admin-mode').forEach(el => el.classList.remove('hidden'));
+// Restore admin2 modes
+['gobble','wrap','minefield','shelf','quantum','gravity','powercard','blocker','points','nightvision','flip'].forEach(m => {
+  if (P['mode_'+m]) {
+    const el = document.getElementById('mode-btn-'+m);
+    if (el) el.classList.remove('hidden');
+  }
+});
+// Ensure existing level has correct skins unlocked
+SKINS.forEach(sk => { if (P.level >= sk.req && !P.unlocked.includes(sk.id)) P.unlocked.push(sk.id); });
+saveP();
+</script>
+</body>
+</html>
