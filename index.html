@@ -71,6 +71,27 @@ body::after {
 }
 
 /* ======= MENU ======= */
+#menu-online-btn {
+  grid-column: span 2;
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(0,245,255,0.06);
+  border: 1px solid rgba(0,245,255,0.35);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #d0d0f0;
+  text-align: left;
+  direction: rtl;
+}
+#menu-online-btn:hover { border-color: #00f5ff; box-shadow: 0 0 12px rgba(0,245,255,0.25); }
+#menu-online-btn .mob-icon { font-size: 1.5rem; flex-shrink: 0; }
+#menu-online-btn .mob-info { flex: 1; }
+#menu-online-btn .mob-title { font-family: 'Orbitron', monospace; font-size: 0.62rem; font-weight: 700; color: #00f5ff; letter-spacing: 0.1em; }
+#menu-online-btn .mob-sub { font-size: 0.68rem; color: #8888aa; margin-top: 0.1rem; }
+#menu-online-btn .mob-badge { background: #00f5ff; color: #000; font-family: 'Orbitron', monospace; font-size: 0.5rem; font-weight: 700; border-radius: 10px; padding: 2px 7px; display: none; flex-shrink: 0; }
 .logo {
   font-family: 'Orbitron', monospace;
   font-size: clamp(2.5rem, 8vw, 4.5rem);
@@ -873,6 +894,14 @@ body::after {
       <div class="mode-name">FLIP</div>
       <div class="mode-desc">המרכז הופך הכל</div>
     </div>
+    <button id="menu-online-btn" onclick="toggleFriendsPanel()">
+      <span class="mob-icon">🌐</span>
+      <div class="mob-info">
+        <div class="mob-title">ONLINE — חברים &amp; משחקים</div>
+        <div class="mob-sub" id="menu-online-sub">טוען...</div>
+      </div>
+      <span class="mob-badge" id="menu-online-badge"></span>
+    </button>
   </div>
 
   <div class="opts-row">
@@ -2641,6 +2670,9 @@ async function onFbAuthed() {
   presRef.onDisconnect().update({ online: false, t: firebase.database.ServerValue.TIMESTAMP });
   document.getElementById('online-fab').style.display = 'flex';
   document.getElementById('fp-myname').textContent = '👤 ' + fbMyUsername;
+  const mob = document.getElementById('menu-online-btn');
+  mob.style.display = 'flex';
+  document.getElementById('menu-online-sub').textContent = '👤 ' + fbMyUsername + ' · טוען חברים...';
   listenFriendRequests();
   listenIncomingInvites();
   loadFriendsList();
@@ -2744,15 +2776,23 @@ function renderFriendsList(friends) {
   const el = document.getElementById('fp-friends-list');
   if (!friends.length) {
     el.innerHTML = '<div style="text-align:center;color:#5a5a8a;font-size:0.7rem;padding:1rem;font-family:Rajdhani,sans-serif;">אין חברים עדיין — הוסף חבר למעלה</div>';
+    const mobSub = document.getElementById('menu-online-sub');
+    if (mobSub) mobSub.textContent = '👤 ' + (fbMyUsername||'') + ' · אין חברים עדיין';
     return;
   }
   el.innerHTML = '';
   let onlineCnt = 0;
+  const totalFriends = friends.length;
   friends.forEach(f => {
     fbRtdb.ref('presence/' + f.uid).once('value', snap => {
       const pres = snap.val();
       const online = !!(pres && pres.online);
-      if (online) { onlineCnt++; const badge = document.getElementById('online-badge'); badge.textContent = onlineCnt; badge.style.display = 'flex'; }
+      if (online) {
+        onlineCnt++;
+        const badge = document.getElementById('online-badge'); badge.textContent = onlineCnt; badge.style.display = 'flex';
+        const mobBadge = document.getElementById('menu-online-badge'); if (mobBadge) { mobBadge.textContent = onlineCnt + ' מחוברים'; mobBadge.style.display = 'inline-flex'; }
+        const mobSub = document.getElementById('menu-online-sub'); if (mobSub) mobSub.textContent = '👤 ' + (fbMyUsername||'') + ' · ' + totalFriends + ' חברים';
+      }
       const div = document.createElement('div');
       div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;';
       div.innerHTML = `
