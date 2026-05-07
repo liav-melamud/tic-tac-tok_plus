@@ -1183,7 +1183,7 @@ async function createProfile() {
   const name = inp.value.trim();
   if (name.length < 2) { err.textContent = 'לפחות 2 תווים'; return; }
   if (name.length > 20) { err.textContent = 'מקסימום 20 תווים'; return; }
-  if (!/^[\u05d0-\u05ea\w ]+$/.test(name)) { err.textContent = 'אותיות, מספרים, רווחים בלבד'; return; }
+  if (!/^[\u05d0-\u05ea\w '\-]+$/.test(name)) { err.textContent = "אותיות, מספרים, מקף, גרש בלבד"; return; }
   const list = getProfiles();
   if (list.includes(name)) { err.textContent = '❌ שם כבר קיים'; return; }
   list.push(name); setProfiles(list);
