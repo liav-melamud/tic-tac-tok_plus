@@ -1810,6 +1810,7 @@ function useCard(p, c) {
   }
   G.cardSelected = {p, c};
   updateCardBtns(); updateStatus();
+  renderAll();
 }
 
 function applyCardOnClick(i) {
@@ -1848,6 +1849,7 @@ function selPU(p, t) {
   G.selPU = (G.selPU && G.selPU.p===p && G.selPU.t===t) ? null : {p, t};
   updatePUbtns();
   updateStatus();
+  renderAll();
 }
 
 function applyPU(i) {
