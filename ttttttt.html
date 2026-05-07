@@ -596,6 +596,8 @@ body::after {
         <button onclick="adminUnlockAll()" class="admin-action-btn">🎨 פתח כל הסקינים</button>
         <button onclick="adminUnlockModes()" class="admin-action-btn" style="border-color:#00f5ff!important;color:#00f5ff!important;">🔓 פתח מצבי משחק סודיים</button>
         <button onclick="adminLockModes()" class="admin-action-btn" style="border-color:#ff6666!important;color:#ff6666!important;">🔒 הסתר מצבי משחק סודיים</button>
+        <button onclick="adminInfinitePU()" class="admin-action-btn" style="border-color:#ff8800!important;color:#ff8800!important;" id="admin-pu-btn">💣 אינסוף פצצות ומגנים</button>
+        <button onclick="adminToggleHints()" class="admin-action-btn" style="border-color:#ffd700!important;color:#ffd700!important;" id="admin-hints-btn">💡 רמזים לתמיד</button>
         <button onclick="adminReset()" class="admin-action-btn" style="border-color:#ff3333!important;color:#ff3333!important;">🗑️ אפס נתונים</button>
       </div>
     </div>
@@ -655,6 +657,14 @@ body::after {
       <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
         <button onclick="admin2EnableAll()" style="flex:1;padding:0.5rem;background:rgba(255,0,255,0.08);border:1px solid #ff00ff;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.58rem;font-weight:700;color:#ff00ff;cursor:pointer;">✅ פתח הכל</button>
         <button onclick="admin2DisableAll()" style="flex:1;padding:0.5rem;background:transparent;border:1px solid #22224a;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.58rem;font-weight:700;color:#5a5a8a;cursor:pointer;">❌ הסתר הכל</button>
+      </div>
+    </div>
+    <!-- Infinite PU + Hints -->
+    <div style="background:#161628;border:1px solid #22224a;border-radius:8px;padding:1rem;margin-bottom:1rem;">
+      <div style="font-family:'Orbitron',monospace;font-size:0.55rem;letter-spacing:0.2em;color:#5a5a8a;margin-bottom:0.75rem;">⚡ כלים מתקדמים</div>
+      <div style="display:flex;flex-direction:column;gap:0.5rem;">
+        <button onclick="admin2InfinitePU()" id="a2btn-infinitepu" style="padding:0.55rem 1rem;background:rgba(255,136,0,0.08);border:1px solid #ff8800;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.65rem;font-weight:700;color:#ff8800;cursor:pointer;letter-spacing:0.08em;transition:all 0.2s;text-align:right;">💣 אינסוף פצצות ומגנים</button>
+        <button onclick="admin2ToggleHints()" id="a2btn-hints" style="padding:0.55rem 1rem;background:rgba(255,215,0,0.06);border:1px solid #ffd700;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.65rem;font-weight:700;color:#ffd700;cursor:pointer;letter-spacing:0.08em;transition:all 0.2s;text-align:right;">💡 רמזים לתמיד</button>
       </div>
     </div>
     <div id="admin2-msg" style="font-family:'Orbitron',monospace;font-size:0.6rem;color:#ff00ff;text-align:center;min-height:1rem;"></div>
@@ -912,7 +922,7 @@ const XP_PER_LV = 100;
 let P = (() => {
   try { return JSON.parse(localStorage.getItem('cxo') || '{}'); } catch(e) { return {}; }
 })();
-P = { level: P.level||1, xp: P.xp||0, wins: P.wins||0, skin: P.skin||'classic', unlocked: P.unlocked||['classic'] };
+P = { level: P.level||1, xp: P.xp||0, wins: P.wins||0, skin: P.skin||'classic', unlocked: P.unlocked||['classic'], hints: P.hints||false, pu_infinite: P.pu_infinite||false };
 function saveP() { try { localStorage.setItem('cxo', JSON.stringify(P)); } catch(e){} }
 
 // =====================================================
@@ -954,10 +964,12 @@ function puDailyData() {
   } catch(e) { return {date:today,Xbomb:0,Xblock:0,Obomb:0,Oblock:0}; }
 }
 function puDailyRemaining(player, type) {
+  if (P.pu_infinite) return 999;
   const d = puDailyData();
   return Math.max(0, PU_DAILY_LIMIT - (d[player+type]||0));
 }
 function puDailyUse(player, type) {
+  if (P.pu_infinite) return;
   const d = puDailyData();
   d[player+type] = (d[player+type]||0) + 1;
   try { localStorage.setItem('pu_daily', JSON.stringify(d)); } catch(e){}
@@ -1146,6 +1158,25 @@ function updateStatus() {
 }
 
 // =====================================================
+// HINT HELPER
+// =====================================================
+function getBestHintCell() {
+  if (!G || G.over || G.mode === 'ultimate') return null;
+  const p = G.cur, opp = p==='X'?'O':'X';
+  const e = empties();
+  if (!e.length) return null;
+  for (const i of e) { G.board[i]=p; const w=checkWinFlat(G.board,G.size,G.wlen); G.board[i]=null; if(w) return i; }
+  for (const i of e) { G.board[i]=opp; const w=checkWinFlat(G.board,G.size,G.wlen); G.board[i]=null; if(w) return i; }
+  let best=-Infinity, bIdx=e[0];
+  for (const i of e) {
+    const r=Math.floor(i/G.size),c=i%G.size,mid=Math.floor(G.size/2);
+    const sc=8-(Math.abs(r-mid)+Math.abs(c-mid))*2;
+    if(sc>best){best=sc;bIdx=i;}
+  }
+  return bIdx;
+}
+
+// =====================================================
 // GOBBLE AUTO-SIZE
 // =====================================================
 function assignRandomGobbleSize() {
@@ -1168,6 +1199,7 @@ function buildFlat() {
   board.style.width = avail + 'px';
 
   const sk = skin();
+  const hintIdx = P.hints ? getBestHintCell() : null;
   for (let i = 0; i < sz*sz; i++) {
     const v = G.board[i];
     const blocked = (G.blocked[i]||0) > 0;
@@ -1239,6 +1271,10 @@ function buildFlat() {
     } else {
       // Minefield: mines revealed only on hover? — no, hidden until played
       cell.onclick = () => flatClick(i);
+      if (P.hints && typeof hintIdx !== 'undefined' && hintIdx === i) {
+        cell.style.boxShadow = '0 0 14px 4px rgba(255,215,0,0.75)';
+        cell.style.borderColor = 'rgba(255,215,0,0.8)';
+      }
     }
 
     // Gobble mode hint
@@ -2251,6 +2287,10 @@ function renderAdminStats() {
       <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:#ffd700;">${s.val}</div>
       <div style="font-family:'Orbitron',monospace;font-size:0.45rem;letter-spacing:0.1em;color:#5a5a8a;margin-top:0.1rem;">${s.lbl}</div>
     </div>`).join('');
+  const puBtn = document.getElementById('admin-pu-btn');
+  const hBtn = document.getElementById('admin-hints-btn');
+  if (puBtn) puBtn.style.background = P.pu_infinite ? 'rgba(255,136,0,0.25)' : '';
+  if (hBtn) hBtn.style.background = P.hints ? 'rgba(255,215,0,0.2)' : '';
 }
 
 function adminMsg(txt) {
@@ -2299,6 +2339,27 @@ function adminLockModes() {
   adminMsg('🔒 מצבי משחק סודיים הוסתרו');
 }
 
+function adminInfinitePU() {
+  P.pu_infinite = !P.pu_infinite;
+  saveP();
+  if (typeof G !== 'undefined' && G && G.power) {
+    const val = P.pu_infinite ? 999 : 3;
+    G.power.X.bomb = val; G.power.X.block = val;
+    G.power.O.bomb = val; G.power.O.block = val;
+    if (G.pu) updatePUbtns();
+  }
+  renderAdminStats();
+  adminMsg(P.pu_infinite ? '💣 פצצות ומגנים אינסוף הופעלו!' : '💣 חזרו לגבול 3/יום');
+}
+
+function adminToggleHints() {
+  P.hints = !P.hints;
+  saveP();
+  if (typeof G !== 'undefined' && G && !G.over) renderAll();
+  renderAdminStats();
+  adminMsg(P.hints ? '💡 רמזים מופעלים לתמיד!' : '💡 רמזים כובו');
+}
+
 // =====================================================
 // ADMIN2 (liavboom)
 // =====================================================
@@ -2322,6 +2383,10 @@ function renderAdmin2Stats() {
     const btn = document.getElementById('a2btn-'+m);
     if (btn) btn.classList.toggle('enabled', !!P['mode_'+m]);
   });
+  const puBtn2 = document.getElementById('a2btn-infinitepu');
+  const hBtn2 = document.getElementById('a2btn-hints');
+  if (puBtn2) puBtn2.style.background = P.pu_infinite ? 'rgba(255,136,0,0.25)' : 'rgba(255,136,0,0.08)';
+  if (hBtn2) hBtn2.style.background = P.hints ? 'rgba(255,215,0,0.2)' : 'rgba(255,215,0,0.06)';
 }
 
 function admin2Msg(txt) {
@@ -2360,6 +2425,27 @@ function admin2DisableAll() {
   saveP();
   renderAdmin2Stats();
   admin2Msg('❌ כל המצבים הוסתרו');
+}
+
+function admin2InfinitePU() {
+  P.pu_infinite = !P.pu_infinite;
+  saveP();
+  if (typeof G !== 'undefined' && G && G.power) {
+    const val = P.pu_infinite ? 999 : 3;
+    G.power.X.bomb = val; G.power.X.block = val;
+    G.power.O.bomb = val; G.power.O.block = val;
+    if (G.pu) updatePUbtns();
+  }
+  renderAdmin2Stats();
+  admin2Msg(P.pu_infinite ? '💣 פצצות ומגנים אינסוף הופעלו!' : '💣 חזרו לגבול 3/יום');
+}
+
+function admin2ToggleHints() {
+  P.hints = !P.hints;
+  saveP();
+  if (typeof G !== 'undefined' && G && !G.over) renderAll();
+  renderAdmin2Stats();
+  admin2Msg(P.hints ? '💡 רמזים מופעלים לתמיד!' : '💡 רמזים כובו');
 }
 
 function admin2SetLevel() {
