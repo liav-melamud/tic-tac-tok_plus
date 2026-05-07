@@ -2752,6 +2752,7 @@ if (!currentProfile) {
   // Ensure existing level has correct skins unlocked
   SKINS.forEach(sk => { if (P.level >= sk.req && !P.unlocked.includes(sk.id)) P.unlocked.push(sk.id); });
   saveP();
+  showScreen('menu');
 }
 
 // =====================================================
