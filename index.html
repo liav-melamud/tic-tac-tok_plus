@@ -1217,6 +1217,16 @@ function buildFlat() {
         if ((v==='X' && xF===i && G.xQ.length>=G.MAXQ) || (v==='O' && oF===i && G.oQ.length>=G.MAXQ))
           cell.classList.add('fading');
       }
+      // Allow clicking taken cells for bomb PU or move card
+      const isBombTarget = G.selPU && G.selPU.t === 'bomb';
+      const isMoveTarget = G.cardSelected && G.cardSelected.c === 'move';
+      if (isBombTarget || isMoveTarget) {
+        cell.style.cursor = 'pointer';
+        cell.onclick = () => flatClick(i);
+        // Highlight opponent cells
+        const opp = G.cur === 'X' ? 'O' : 'X';
+        if (v === opp) cell.style.boxShadow = '0 0 8px 2px rgba(255,80,80,0.7)';
+      }
     } else if (v && v.endsWith('?')) {
       // Quantum pending
       const qp = v[0]==='X' ? 'x-mark' : 'o-mark';
