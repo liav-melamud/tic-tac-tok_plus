@@ -644,7 +644,6 @@ body::after {
         <button onclick="admin2ToggleMode('gobble')" class="admin2-mode-btn" id="a2btn-gobble">♟️ GOBBLE — ממד הגודל</button>
         <button onclick="admin2ToggleMode('wrap')" class="admin2-mode-btn" id="a2btn-wrap">🌐 WRAP — לוח גלגלתי</button>
         <button onclick="admin2ToggleMode('minefield')" class="admin2-mode-btn" id="a2btn-minefield">💥 MINEFIELD — מוקשים</button>
-        <button onclick="admin2ToggleMode('shelf')" class="admin2-mode-btn" id="a2btn-shelf">⏳ SHELF LIFE — כלים נעלמים</button>
         <button onclick="admin2ToggleMode('quantum')" class="admin2-mode-btn" id="a2btn-quantum">⚛️ QUANTUM — מצב קוונטי</button>
         <button onclick="admin2ToggleMode('gravity')" class="admin2-mode-btn" id="a2btn-gravity">🌍 GRAVITY — כבידה</button>
         <button onclick="admin2ToggleMode('powercard')" class="admin2-mode-btn" id="a2btn-powercard">🃏 POWER CARDS — קלפי כוח</button>
@@ -725,11 +724,6 @@ body::after {
       <div class="mode-icon">💥</div>
       <div class="mode-name">MINEFIELD</div>
       <div class="mode-desc">משבצות מוקשים</div>
-    </div>
-    <div class="mode-btn admin2-mode hidden" onclick="selMode('shelf',this)" id="mode-btn-shelf">
-      <div class="mode-icon">⏳</div>
-      <div class="mode-name">SHELF LIFE</div>
-      <div class="mode-desc">סימנים נעלמים</div>
     </div>
     <div class="mode-btn admin2-mode hidden" onclick="selMode('quantum',this)" id="mode-btn-quantum">
       <div class="mode-icon">⚛️</div>
@@ -948,12 +942,34 @@ function tog(el, cls, active) {
 }
 
 // =====================================================
+// POWER-UP DAILY TRACKING
+// =====================================================
+const PU_DAILY_LIMIT = 3;
+function puDailyData() {
+  const today = new Date().toDateString();
+  try {
+    const d = JSON.parse(localStorage.getItem('pu_daily') || '{}');
+    if (d.date !== today) return {date:today,Xbomb:0,Xblock:0,Obomb:0,Oblock:0};
+    return d;
+  } catch(e) { return {date:today,Xbomb:0,Xblock:0,Obomb:0,Oblock:0}; }
+}
+function puDailyRemaining(player, type) {
+  const d = puDailyData();
+  return Math.max(0, PU_DAILY_LIMIT - (d[player+type]||0));
+}
+function puDailyUse(player, type) {
+  const d = puDailyData();
+  d[player+type] = (d[player+type]||0) + 1;
+  try { localStorage.setItem('pu_daily', JSON.stringify(d)); } catch(e){}
+}
+
+// =====================================================
 // GAME STATE
 // =====================================================
 let G;
 
 function newState() {
-  return {
+  const st = {
     mode: _mode, vsAI: _vsAI, aiP: _aiP,
     blitz: _blitz, pu: _pu, skin: P.skin,
     cur: 'X', over: false, moves: 0,
@@ -967,8 +983,8 @@ function newState() {
     ub: Array.from({length:9}, ()=>Array(9).fill(null)),
     ubb: Array(9).fill(null),
     uActive: -1,
-    // Power-ups
-    power: { X:{bomb:1,block:1}, O:{bomb:1,block:1} },
+    // Power-ups (daily limit tracked in localStorage)
+    power: { X:{bomb:puDailyRemaining('X','bomb'),block:puDailyRemaining('X','block')}, O:{bomb:puDailyRemaining('O','bomb'),block:puDailyRemaining('O','block')} },
     blocked: {},
     selPU: null,
     // Score
@@ -996,6 +1012,9 @@ function newState() {
     cardSelected: null,
     doublePlay: false,
   };
+  // Wrap mode: 4x4 board with wl=3 for proper cylindrical gameplay
+  if (_mode === 'wrap') { st.board = Array(16).fill(null); st.size = 4; st.wlen = 3; }
+  return st;
 }
 
 // =====================================================
@@ -1029,6 +1048,7 @@ function startGame() {
   }
   showScreen('game');
   initGameUI();
+  if (G.mode === 'gobble') assignRandomGobbleSize();
   renderAll();
   if (G.blitz) startTimer();
   if (G.vsAI && G.cur === 'O') schedAI();
@@ -1040,6 +1060,7 @@ function rematch() {
   G.sc = sc;
   showScreen('game');
   initGameUI();
+  if (G.mode === 'gobble') assignRandomGobbleSize();
   renderAll();
   if (G.blitz) startTimer();
   if (G.vsAI && G.cur === 'O') schedAI();
@@ -1080,9 +1101,15 @@ function renderAll() {
   const cont = document.getElementById('board-cont');
   cont.innerHTML = '';
   const built = G.mode === 'ultimate' ? buildUlti() : buildFlat();
-  cont.appendChild(built);
   if (G.mode === 'gobble' && built._gobbleRow) {
-    cont.appendChild(built._gobbleRow);
+    // Wrap board + size row in a column container so board stays centered
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px;';
+    wrapper.appendChild(built);
+    wrapper.appendChild(built._gobbleRow);
+    cont.appendChild(wrapper);
+  } else {
+    cont.appendChild(built);
   }
   // Points mode: show running score
   if (G.mode === 'points') {
@@ -1110,9 +1137,21 @@ function updateStatus() {
   if (G.over) { el.textContent = ''; return; }
   if (G.selPU) {
     el.textContent = G.selPU.t === 'bomb' ? '💣 לחץ על סימן יריב' : '🛡️ לחץ על תא ריק';
+  } else if (G.mode === 'gobble' && G.gobbleSelectedSize !== null) {
+    const szName = G.gobbleSelectedSize===1?'קטן':G.gobbleSelectedSize===2?'בינוני':'גדול';
+    el.textContent = `תור ${mk(G.cur)} · ♟️ גודל: ${szName}`;
   } else {
     el.textContent = `תור ${mk(G.cur)}`;
   }
+}
+
+// =====================================================
+// GOBBLE AUTO-SIZE
+// =====================================================
+function assignRandomGobbleSize() {
+  if (G.mode !== 'gobble') return;
+  const hand = G.gobbleHand[G.cur];
+  G.gobbleSelectedSize = hand.length > 0 ? hand[Math.floor(Math.random() * hand.length)] : null;
 }
 
 // =====================================================
@@ -1192,32 +1231,43 @@ function buildFlat() {
       cell.onclick = () => flatClick(i);
     }
 
-    // Gobble mode: gobble size selector overlay
+    // Gobble mode hint
     if (G.mode === 'gobble' && !v && !blocked) {
-      cell.title = 'לחץ לשים כלי (בחר גודל למטה)';
+      const szName = G.gobbleSelectedSize===1?'קטן':G.gobbleSelectedSize===2?'בינוני':G.gobbleSelectedSize===3?'גדול':'?';
+      cell.title = `לחץ לשים כלי גודל: ${szName}`;
     }
 
     board.appendChild(cell);
   }
 
-  // Gobble size selector row
+  // Gobble info row — shows remaining sizes and auto-assigned size (display only, no click)
   if (G.mode === 'gobble' && !G.over) {
-    const hand = G.gobbleHand[G.cur];
     const row = document.createElement('div');
-    row.style.cssText = 'display:flex;gap:6px;margin-top:8px;justify-content:center;width:100%;';
-    [1,2,3].forEach(sz2 => {
-      const btn = document.createElement('button');
-      const has = hand.includes(sz2);
-      btn.style.cssText = `padding:4px 10px;border-radius:5px;border:1px solid ${has?'var(--gold)':'#22224a'};background:${has?(G.gobbleSelectedSize===sz2?'rgba(255,215,0,0.25)':'transparent'):'rgba(0,0,0,0.3)'};color:${has?'var(--gold)':'#5a5a8a'};font-family:'Orbitron',monospace;font-size:0.6rem;cursor:${has?'pointer':'default'};`;
-      btn.textContent = sz2===1?'קטן':sz2===2?'בינוני':'גדול';
-      if (has) btn.onclick = (e) => { e.stopPropagation(); G.gobbleSelectedSize = G.gobbleSelectedSize===sz2?null:sz2; renderAll(); };
-      row.appendChild(btn);
+    row.style.cssText = 'display:flex;gap:6px;margin-top:8px;justify-content:center;width:100%;align-items:center;';
+    // Label
+    const lbl = document.createElement('span');
+    lbl.style.cssText = "font-family:'Orbitron',monospace;font-size:0.55rem;color:var(--muted);margin-left:4px;";
+    lbl.textContent = 'גדלים נותרים:';
+    row.appendChild(lbl);
+    // Show each player's remaining sizes
+    ['X','O'].forEach(pl => {
+      const hand = G.gobbleHand[pl];
+      const isActive = pl === G.cur;
+      [1,2,3].forEach(sz2 => {
+        const pip = document.createElement('span');
+        const has = hand.includes(sz2);
+        const isSelected = isActive && G.gobbleSelectedSize === sz2;
+        pip.style.cssText = `display:inline-flex;align-items:center;justify-content:center;width:${sz2===1?'16px':sz2===2?'22px':'28px'};height:${sz2===1?'16px':sz2===2?'22px':'28px'};border-radius:50%;border:2px solid ${has?(pl==='X'?'var(--x-color)':'var(--o-color)'):'#2a2a3a'};background:${isSelected?'rgba(255,215,0,0.3)':'transparent'};font-size:0.35rem;font-family:'Orbitron',monospace;color:${has?(pl==='X'?'var(--x-color)':'var(--o-color)'):'#333'};font-weight:900;${isSelected?'box-shadow:0 0 6px gold;':''}`;
+        pip.textContent = pl;
+        row.appendChild(pip);
+      });
+      if (pl === 'X') {
+        const sep = document.createElement('span');
+        sep.style.cssText = 'color:#333;margin:0 2px;';
+        sep.textContent = '|';
+        row.appendChild(sep);
+      }
     });
-    board.after ? board.appendChild(row) : board.parentNode.appendChild(row);
-    // Actually append below board
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText='display:flex;flex-direction:column;align-items:center;gap:6px;';
-    board.parentNode && board.parentNode.querySelector('.gobble-row') && board.parentNode.querySelector('.gobble-row').remove();
     row.className = 'gobble-row';
     board._gobbleRow = row;
   }
@@ -1302,14 +1352,22 @@ function flatClick(i) {
     nextTurn();
     return;
   }
-  // Gobble mode: need size selected
+  // Gobble mode: size is auto-assigned randomly
   if (G.mode === 'gobble') {
-    if (G.gobbleSelectedSize === null) { notify('♟️ בחר גודל כלי קודם!'); return; }
+    if (G.gobbleSelectedSize === null) {
+      // No sizes left for this player — skip turn
+      notify('♟️ אין גדלים זמינים!'); nextTurn(); return;
+    }
     const hand = G.gobbleHand[G.cur];
-    if (!hand.includes(G.gobbleSelectedSize)) { notify('♟️ כבר השתמשת בגודל הזה!'); return; }
     const existing = G.gobbleBoard[i];
     if (existing && existing.player === G.cur) { notify('♟️ אי אפשר לכסות את עצמך!'); return; }
-    if (existing && existing.size >= G.gobbleSelectedSize) { notify('♟️ הכלי שלך קטן מדי!'); return; }
+    if (existing && existing.size >= G.gobbleSelectedSize) {
+      // Can't place — reassign a larger size if possible
+      const larger = hand.filter(s => s > existing.size);
+      if (larger.length === 0) { notify('♟️ הכלי שלך קטן מדי — בחר תא אחר!'); return; }
+      G.gobbleSelectedSize = larger[Math.floor(Math.random()*larger.length)];
+      notify('♟️ גודל הוחלף לדעת ליכולת!'); renderAll(); return;
+    }
     // Place
     hand.splice(hand.indexOf(G.gobbleSelectedSize),1);
     G.gobbleBoard[i] = { player: G.cur, size: G.gobbleSelectedSize };
@@ -1481,6 +1539,7 @@ function nextTurn() {
   G.cur = G.cur==='X' ? 'O' : 'X';
   document.getElementById('panel-x').classList.toggle('active', G.cur==='X');
   document.getElementById('panel-o').classList.toggle('active', G.cur==='O');
+  if (G.mode === 'gobble') assignRandomGobbleSize();
   updateStatus();
   if (G.pu && G.mode !== 'ultimate') updatePUbtns();
   if (G.mode === 'powercard') updateCardBtns();
@@ -1614,14 +1673,19 @@ function winLines(sz, wl) {
 }
 
 function checkWinFlat(board, sz, wl) {
-  // For wrap mode, also check wrap-around rows
   const lines = winLines(sz, wl);
   if (G && G.mode === 'wrap') {
-    // Add horizontal wrap-around lines
+    // Full wrap-around lines: horizontal, vertical, diagonal (all starting positions wrapping)
     for (let r=0; r<sz; r++) {
-      for (let sc2=0; sc2<sz; sc2++) {
-        const line = Array.from({length:wl},(_,k)=>[r, (sc2+k)%sz]).map(([row,col])=>row*sz+col);
-        lines.push(line);
+      for (let c=0; c<sz; c++) {
+        // Horizontal wrap
+        lines.push(Array.from({length:wl},(_,k)=>r*sz+(c+k)%sz));
+        // Vertical wrap
+        lines.push(Array.from({length:wl},(_,k)=>((r+k)%sz)*sz+c));
+        // Diagonal down-right wrap
+        lines.push(Array.from({length:wl},(_,k)=>((r+k)%sz)*sz+(c+k)%sz));
+        // Diagonal down-left wrap
+        lines.push(Array.from({length:wl},(_,k)=>((r+k)%sz)*sz+(c-k+sz)%sz));
       }
     }
   }
@@ -1744,24 +1808,29 @@ function applyCardOnClick(i) {
   const opp = p==='X'?'O':'X';
   if (c === 'move') {
     if (G.board[i] !== opp) { notify('↔️ לחץ על כלי של היריב!'); return true; }
-    // move opponent piece: remove it
+    // Remove opponent piece — player keeps turn and places their own piece
     G.board[i] = null;
     if (G.mode==='ghost') {
       const q = opp==='X'?G.xQ:G.oQ;
       const idx = q.indexOf(i); if(idx!==-1) q.splice(idx,1);
     }
     G.cards[p].splice(G.cards[p].indexOf('move'),1);
-    notify('↔️ כלי היריב הוזז!');
+    G.cardSelected = null;
+    renderAll();
+    notify('↔️ כלי היריב הוזז — עכשיו שחק!');
+    // Player keeps their turn — no nextTurn()
+    return true;
   } else if (c === 'block1') {
     if (G.board[i]) { notify('🧱 בחר תא ריק!'); return true; }
     G.blocked[i] = 2;
     G.cards[p].splice(G.cards[p].indexOf('block1'),1);
     notify('🧱 משבצת נחסמה!');
+    G.cardSelected = null;
+    renderAll();
+    nextTurn();
+    return true;
   }
-  G.cardSelected = null;
-  renderAll();
-  nextTurn();
-  return true;
+  return false;
 }
 
 function selPU(p, t) {
@@ -1782,16 +1851,21 @@ function applyPU(i) {
       const idx = q.indexOf(i); if (idx!==-1) q.splice(idx,1);
     }
     G.power[p].bomb--;
-    notify('💣 פצצה! הסימן של היריב נמחק');
+    puDailyUse(p, 'bomb');
+    G.selPU = null;
+    renderAll();
+    notify('💣 פצצה! הסימן נמחק — עכשיו שחק!');
+    // Player keeps their turn — no nextTurn()
   } else {
     if (G.board[i]) { notify('🛡️ בחר תא ריק!'); return; }
     G.blocked[i] = 2;
     G.power[p].block--;
+    puDailyUse(p, 'block');
+    G.selPU = null;
+    renderAll();
     notify('🛡️ תא נחסם לסיבוב!');
+    nextTurn();
   }
-  G.selPU = null;
-  renderAll();
-  nextTurn();
 }
 
 function tickBlocked() {
@@ -2216,7 +2290,7 @@ function adminLockModes() {
 // =====================================================
 // ADMIN2 (liavboom)
 // =====================================================
-const ADMIN2_MODES = ['gobble','wrap','minefield','shelf','quantum','gravity','powercard','blocker','points','nightvision','flip'];
+const ADMIN2_MODES = ['gobble','wrap','minefield','quantum','gravity','powercard','blocker','points','nightvision','flip'];
 // Note: 'ultimate2' maps to the existing always-visible 'ultimate' mode
 
 function renderAdmin2Stats() {
@@ -2294,7 +2368,7 @@ function admin2SetLevel() {
 document.getElementById('menu-lv').textContent = P.level;
 if (P.secretModes) document.querySelectorAll('.admin-mode').forEach(el => el.classList.remove('hidden'));
 // Restore admin2 modes
-['gobble','wrap','minefield','shelf','quantum','gravity','powercard','blocker','points','nightvision','flip'].forEach(m => {
+['gobble','wrap','minefield','quantum','gravity','powercard','blocker','points','nightvision','flip'].forEach(m => {
   if (P['mode_'+m]) {
     const el = document.getElementById('mode-btn-'+m);
     if (el) el.classList.remove('hidden');
