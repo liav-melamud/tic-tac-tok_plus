@@ -553,6 +553,11 @@ body::after {
 
 .expand-flash { animation: expand-flash 0.5s ease-in-out 3; }
 </style>
+<!-- Firebase 9 compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -678,6 +683,104 @@ body::after {
 .admin2-mode-btn:hover{border-color:#ffd700;color:#ffd700;}
 .admin2-mode-btn.enabled{background:rgba(255,215,0,0.1);border-color:#ffd700;color:#ffd700;box-shadow:0 0 6px rgba(255,215,0,0.3);}
 </style>
+
+<style>
+@keyframes slide-up-panel{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+</style>
+
+<!-- ======= ONLINE SYSTEM ======= -->
+
+<!-- Username setup modal -->
+<div id="uname-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.93);z-index:99995;display:none;align-items:center;justify-content:center;">
+  <div style="background:#0e0e1c;border:2px solid #00f5ff;border-radius:14px;padding:2rem;width:min(90vw,360px);text-align:center;box-shadow:0 0 40px rgba(0,245,255,0.3);animation:zoom-in 0.3s ease-out;">
+    <div style="font-size:2.2rem;margin-bottom:0.4rem;">👤</div>
+    <div style="font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;color:#00f5ff;margin-bottom:0.2rem;">שם משתמש</div>
+    <div style="font-family:'Rajdhani',sans-serif;color:#5a5a8a;font-size:0.85rem;margin-bottom:1.2rem;">השם שיוצג לחברים שלך</div>
+    <input id="uname-inp" type="text" maxlength="20" placeholder="שם משתמש (3-20)..."
+      style="width:100%;padding:0.65rem 1rem;background:#06060f;border:1px solid #22224a;border-radius:6px;color:#d0d0f0;font-family:'Orbitron',monospace;font-size:0.75rem;text-align:center;outline:none;margin-bottom:0.5rem;transition:border-color 0.2s;"
+      oninput="document.getElementById('uname-err').textContent=''" onkeydown="if(event.key==='Enter')doRegisterUsername()"/>
+    <div id="uname-err" style="color:#ff3333;font-family:'Orbitron',monospace;font-size:0.6rem;min-height:1rem;margin-bottom:0.5rem;"></div>
+    <button onclick="doRegisterUsername()" style="width:100%;padding:0.65rem;background:linear-gradient(135deg,rgba(0,245,255,0.18),rgba(0,190,190,0.12));border:1px solid #00f5ff;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:700;color:#00f5ff;cursor:pointer;">✓ צור שם משתמש</button>
+    <div style="margin-top:0.7rem;font-size:0.6rem;color:#444;font-family:'Rajdhani',sans-serif;">נדרש Firebase · עיין בקוד להוראות הגדרה</div>
+  </div>
+</div>
+
+<!-- Friends FAB -->
+<button id="online-fab" onclick="toggleFriendsPanel()" title="חברים"
+  style="position:fixed;bottom:1.2rem;left:1.2rem;z-index:8999;background:#0e0e1c;border:2px solid #00f5ff;border-radius:50%;width:52px;height:52px;font-size:1.35rem;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 0 14px rgba(0,245,255,0.25);padding:0;">
+  👥<span id="online-badge" style="position:absolute;top:-4px;right:-4px;background:#00f5ff;color:#000;font-size:0.5rem;font-family:'Orbitron',monospace;font-weight:700;border-radius:50%;width:17px;height:17px;display:none;align-items:center;justify-content:center;">0</span>
+</button>
+
+<!-- Friends Panel -->
+<div id="friends-panel" class="hidden"
+  style="position:fixed;bottom:0;left:0;width:min(100vw,310px);max-height:72vh;background:#0e0e1c;border:2px solid #00f5ff;border-radius:14px 14px 0 0;z-index:9000;display:flex;flex-direction:column;box-shadow:0 -4px 30px rgba(0,245,255,0.18);animation:slide-up-panel 0.22s ease-out;">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:0.7rem 1rem;border-bottom:1px solid #22224a;background:#161628;border-radius:14px 14px 0 0;flex-shrink:0;">
+    <div style="font-family:'Orbitron',monospace;font-size:0.68rem;font-weight:700;color:#00f5ff;">👥 חברים</div>
+    <button onclick="toggleFriendsPanel()" style="background:transparent;border:none;color:#5a5a8a;font-size:1.1rem;cursor:pointer;">✕</button>
+  </div>
+  <div style="padding:0.55rem 0.9rem;border-bottom:1px solid #22224a;flex-shrink:0;">
+    <div style="display:flex;gap:6px;">
+      <input id="fp-add-inp" type="text" placeholder="הוסף חבר לפי שם..." maxlength="20"
+        style="flex:1;padding:0.38rem 0.6rem;background:#06060f;border:1px solid #22224a;border-radius:5px;color:#d0d0f0;font-family:'Orbitron',monospace;font-size:0.58rem;outline:none;"
+        onkeydown="if(event.key==='Enter')doAddFriend()"/>
+      <button onclick="doAddFriend()" style="padding:0.38rem 0.65rem;background:rgba(0,245,255,0.1);border:1px solid #00f5ff;border-radius:5px;font-family:'Orbitron',monospace;font-size:0.6rem;color:#00f5ff;cursor:pointer;">➕</button>
+    </div>
+    <div id="fp-add-msg" style="font-family:'Orbitron',monospace;font-size:0.52rem;min-height:0.75rem;margin-top:3px;"></div>
+  </div>
+  <div id="fp-requests-sec" style="display:none;padding:0.45rem 0.9rem;border-bottom:1px solid #22224a;max-height:110px;overflow-y:auto;flex-shrink:0;">
+    <div style="font-family:'Orbitron',monospace;font-size:0.48rem;color:#ffd700;margin-bottom:5px;letter-spacing:0.1em;">📬 בקשות ממתינות</div>
+    <div id="fp-requests-list"></div>
+  </div>
+  <div id="fp-friends-list" style="flex:1;overflow-y:auto;padding:6px 4px;"></div>
+  <div id="fp-myname" style="padding:5px 14px;border-top:1px solid #22224a;font-family:'Orbitron',monospace;font-size:0.48rem;color:#444;flex-shrink:0;"></div>
+</div>
+
+<!-- Chat window -->
+<div id="chat-win" class="hidden"
+  style="position:fixed;bottom:0;left:0;width:min(100vw,295px);height:370px;background:#0e0e1c;border:2px solid #ff00ff;border-radius:14px 14px 0 0;z-index:9001;display:flex;flex-direction:column;box-shadow:0 -4px 30px rgba(255,0,255,0.18);animation:slide-up-panel 0.22s ease-out;">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:0.55rem 0.9rem;border-bottom:1px solid #22224a;background:#161628;border-radius:14px 14px 0 0;flex-shrink:0;">
+    <div>
+      <div id="chat-title" style="font-family:'Orbitron',monospace;font-size:0.62rem;font-weight:700;color:#ff00ff;">💬</div>
+      <div id="chat-status" style="font-size:0.5rem;color:#5a5a8a;font-family:'Rajdhani',sans-serif;"></div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button id="chat-inv-btn" onclick="openChatInvite()" style="display:none;padding:2px 7px;background:rgba(0,245,255,0.08);border:1px solid #00f5ff;border-radius:4px;font-family:'Orbitron',monospace;font-size:0.48rem;color:#00f5ff;cursor:pointer;">🎮 הזמן</button>
+      <button onclick="closeChat()" style="background:transparent;border:none;color:#5a5a8a;font-size:1.1rem;cursor:pointer;">✕</button>
+    </div>
+  </div>
+  <div id="chat-msgs" style="flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:3px;"></div>
+  <div style="padding:6px;border-top:1px solid #22224a;display:flex;gap:6px;flex-shrink:0;">
+    <input id="chat-inp" type="text" placeholder="הודעה..." maxlength="200"
+      style="flex:1;padding:0.38rem 0.6rem;background:#06060f;border:1px solid #22224a;border-radius:5px;color:#d0d0f0;font-family:'Rajdhani',sans-serif;font-size:0.82rem;outline:none;"
+      onkeydown="if(event.key==='Enter')sendChatMsg()"/>
+    <button onclick="sendChatMsg()" style="padding:0.38rem 0.65rem;background:rgba(255,0,255,0.1);border:1px solid #ff00ff;border-radius:5px;color:#ff00ff;cursor:pointer;">➤</button>
+  </div>
+</div>
+
+<!-- Game invite modal -->
+<div id="invite-modal" class="hidden"
+  style="position:fixed;inset:0;background:rgba(0,0,0,0.87);z-index:99994;display:flex;align-items:center;justify-content:center;">
+  <div style="background:#0e0e1c;border:2px solid #00f5ff;border-radius:14px;padding:1.5rem;width:min(90vw,350px);max-height:80vh;overflow-y:auto;box-shadow:0 0 30px rgba(0,245,255,0.25);animation:zoom-in 0.25s ease-out;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
+      <div style="font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:700;color:#00f5ff;">🎮 הזמן לשחק</div>
+      <button onclick="closeInviteModal()" style="background:transparent;border:none;color:#5a5a8a;font-size:1.1rem;cursor:pointer;">✕</button>
+    </div>
+    <div id="invite-modal-to" style="font-family:'Orbitron',monospace;font-size:0.55rem;color:#5a5a8a;margin-bottom:0.7rem;"></div>
+    <div id="invite-modes-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:0.8rem;"></div>
+    <button id="invite-confirm-btn" onclick="confirmSendInvite()"
+      style="width:100%;padding:0.6rem;background:rgba(0,245,255,0.06);border:1px solid #336;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.65rem;color:#5a5a8a;cursor:default;transition:all 0.2s;">בחר מצב משחק</button>
+  </div>
+</div>
+
+<!-- Incoming invite toast -->
+<div id="invite-toast" class="hidden"
+  style="position:fixed;top:1rem;left:50%;transform:translateX(-50%);z-index:99993;background:#0e0e1c;border:2px solid #ffd700;border-radius:12px;padding:0.9rem 1.3rem;text-align:center;box-shadow:0 0 24px rgba(255,215,0,0.35);min-width:230px;animation:zoom-in 0.25s ease-out;">
+  <div id="invite-toast-txt" style="font-family:'Orbitron',monospace;font-size:0.62rem;color:#ffd700;margin-bottom:0.65rem;line-height:1.5;"></div>
+  <div style="display:flex;gap:8px;justify-content:center;">
+    <button onclick="acceptInvite()" style="padding:5px 14px;background:rgba(0,200,0,0.13);border:1px solid #00cc00;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.58rem;color:#00cc00;cursor:pointer;">✅ קבל</button>
+    <button onclick="declineInvite()" style="padding:5px 14px;background:transparent;border:1px solid #ff3333;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.58rem;color:#ff3333;cursor:pointer;">❌ דחה</button>
+  </div>
+</div>
 
 <!-- ======= MENU ======= -->
 <div id="screen-menu" class="screen">
@@ -979,6 +1082,7 @@ function puDailyUse(player, type) {
 // GAME STATE
 // =====================================================
 let G;
+let ONLINE_ROOM = null; // set by Firebase online system: { roomId, myRole, oppName, unsubscribe }
 
 function newState() {
   const st = {
@@ -1036,7 +1140,7 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
   document.getElementById('screen-'+id).classList.remove('hidden');
 }
-function goMenu() { stopTimer(); showScreen('menu'); document.getElementById('menu-lv').textContent = P.level; }
+function goMenu() { stopTimer(); endOnlineGame(); showScreen('menu'); document.getElementById('menu-lv').textContent = P.level; }
 function goShop() { renderShop(); showScreen('shop'); }
 
 // =====================================================
@@ -1382,6 +1486,7 @@ function buildUlti() {
 // FLAT CLICK
 // =====================================================
 function flatClick(i) {
+  if (ONLINE_ROOM && G.cur !== ONLINE_ROOM.myRole) { notify('⏳ תור היריב!'); return; }
   if (G.over || (G.blocked[i]||0)>0) return;
   if (G.vsAI && G.cur==='O') return;
   if (G.selPU) { applyPU(i); return; }
@@ -1530,10 +1635,11 @@ function doFlatMove(i) {
     return;
   }
 
-  if (winner) { endWin(winner); return; }
-  if (G.mode !== 'ghost' && G.mode !== 'quantum' && G.board.every(c=>c)) { endDraw(); return; }
+  if (winner) { if (ONLINE_ROOM) syncOnlineMove(winner, false); endWin(winner); return; }
+  if (G.mode !== 'ghost' && G.mode !== 'quantum' && G.board.every(c=>c)) { if (ONLINE_ROOM) syncOnlineMove(null, true); endDraw(); return; }
 
   nextTurn();
+  if (ONLINE_ROOM) syncOnlineMove(null, false);
 }
 
 // =====================================================
@@ -2475,6 +2581,472 @@ if (P.secretModes) document.querySelectorAll('.admin-mode').forEach(el => el.cla
 // Ensure existing level has correct skins unlocked
 SKINS.forEach(sk => { if (P.level >= sk.req && !P.unlocked.includes(sk.id)) P.unlocked.push(sk.id); });
 saveP();
+
+// =====================================================
+// FIREBASE ONLINE SYSTEM
+// =====================================================
+// SETUP INSTRUCTIONS (one-time):
+// 1. https://console.firebase.google.com → Create project
+// 2. Enable Authentication (Anonymous), Firestore, Realtime Database
+// 3. Firestore rules: allow read, write: if request.auth != null;
+// 4. RTDB rules: { "rules": { ".read": "auth != null", ".write": "auth != null" } }
+// 5. Authentication → Settings → Authorized Domains → add your GitHub Pages domain
+// 6. Replace FB_CONFIG below with YOUR project config (Project Settings → Your apps)
+const FB_CONFIG = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID",
+  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com"
+};
+
+const FB_ACTIVE = typeof firebase !== 'undefined' && FB_CONFIG.apiKey !== 'YOUR_API_KEY';
+let fbAuth = null, fbStore = null, fbRtdb = null, fbUser = null;
+let fbMyUsername = localStorage.getItem('cxo_username') || null;
+// ONLINE_ROOM already declared above by game logic hooks
+let fbPendingInvite = null, fbSentInviteId = null, fbSentInviteUnsub = null;
+let fbFriendsUnsub = null, fbReqUnsub = null, fbChatUnsub = null, fbInviteUnsub = null;
+let fbChatFriend = null, fbInviteTarget = null, fbSelInviteMode = null;
+
+if (FB_ACTIVE) {
+  firebase.initializeApp(FB_CONFIG);
+  fbAuth = firebase.auth();
+  fbStore = firebase.firestore();
+  fbRtdb = firebase.database();
+  fbAuth.onAuthStateChanged(u => { fbUser = u; if (u) onFbAuthed(); });
+}
+
+function fbStart() {
+  if (!FB_ACTIVE) return;
+  if (fbMyUsername) {
+    fbAuth.signInAnonymously().catch(e => console.warn('FB auth:', e.message));
+  } else {
+    document.getElementById('uname-modal').style.display = 'flex';
+  }
+}
+
+async function onFbAuthed() {
+  if (!fbMyUsername) return;
+  localStorage.setItem('cxo_uid', fbUser.uid);
+  const uRef = fbStore.collection('users').doc(fbUser.uid);
+  const uDoc = await uRef.get().catch(() => null);
+  if (!uDoc || !uDoc.exists) {
+    await uRef.set({ uid: fbUser.uid, username: fbMyUsername, createdAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => {});
+    await fbStore.collection('usernames').doc(fbMyUsername).set({ uid: fbUser.uid }).catch(() => {});
+  }
+  const presRef = fbRtdb.ref('presence/' + fbUser.uid);
+  presRef.set({ online: true, username: fbMyUsername, t: firebase.database.ServerValue.TIMESTAMP });
+  presRef.onDisconnect().update({ online: false, t: firebase.database.ServerValue.TIMESTAMP });
+  document.getElementById('online-fab').style.display = 'flex';
+  document.getElementById('fp-myname').textContent = '👤 ' + fbMyUsername;
+  listenFriendRequests();
+  listenIncomingInvites();
+  loadFriendsList();
+}
+
+// ──── USERNAME SETUP ────
+async function doRegisterUsername() {
+  const inp = document.getElementById('uname-inp');
+  const err = document.getElementById('uname-err');
+  const name = inp.value.trim();
+  if (name.length < 3) { err.textContent = 'לפחות 3 תווים'; return; }
+  if (name.length > 20) { err.textContent = 'מקסימום 20 תווים'; return; }
+  if (!/^[\w\u05d0-\u05ea]+$/.test(name)) { err.textContent = 'אותיות, מספרים וקו תחתון בלבד'; return; }
+  err.textContent = '⏳ בודק זמינות...';
+  inp.disabled = true;
+  try {
+    const doc = await fbStore.collection('usernames').doc(name).get();
+    if (doc.exists) { err.textContent = '❌ השם תפוס'; inp.disabled = false; return; }
+    fbMyUsername = name;
+    localStorage.setItem('cxo_username', name);
+    document.getElementById('uname-modal').style.display = 'none';
+    fbAuth.signInAnonymously().catch(e => { err.textContent = e.message; inp.disabled = false; });
+  } catch(e) { err.textContent = '❌ ' + e.message; inp.disabled = false; }
+}
+
+// ──── FRIENDS PANEL ────
+function toggleFriendsPanel() {
+  const p = document.getElementById('friends-panel');
+  p.classList.toggle('hidden');
+  if (!p.classList.contains('hidden')) loadFriendsList();
+}
+
+async function doAddFriend() {
+  const inp = document.getElementById('fp-add-inp');
+  const name = inp.value.trim();
+  if (!name || !fbUser) return;
+  if (name === fbMyUsername) { showFpMsg('❌ לא ניתן להוסיף את עצמך', '#ff3333'); return; }
+  showFpMsg('🔍 מחפש...', '#5a5a8a');
+  try {
+    const uDoc = await fbStore.collection('usernames').doc(name).get();
+    if (!uDoc.exists) { showFpMsg('❌ משתמש לא נמצא', '#ff3333'); return; }
+    const targetUid = uDoc.data().uid;
+    const already = await fbStore.collection('friends').doc(fbUser.uid).collection('list').doc(targetUid).get();
+    if (already.exists) { showFpMsg('✅ כבר חברים!', '#00cc00'); return; }
+    await fbStore.collection('friend_requests').doc(targetUid).collection('received').doc(fbUser.uid).set({
+      uid: fbUser.uid, username: fbMyUsername, sentAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    inp.value = '';
+    showFpMsg('✅ בקשת חברות נשלחה!', '#00f5ff');
+  } catch(e) { showFpMsg('❌ ' + e.message, '#ff3333'); }
+}
+
+function showFpMsg(txt, color) {
+  const el = document.getElementById('fp-add-msg');
+  el.textContent = txt; el.style.color = color;
+  clearTimeout(window._fpMsgTimer);
+  window._fpMsgTimer = setTimeout(() => { el.textContent = ''; }, 3500);
+}
+
+function listenFriendRequests() {
+  if (!fbUser) return;
+  if (fbReqUnsub) fbReqUnsub();
+  fbReqUnsub = fbStore.collection('friend_requests').doc(fbUser.uid).collection('received')
+    .onSnapshot(snap => {
+      const reqs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const sec = document.getElementById('fp-requests-sec');
+      const list = document.getElementById('fp-requests-list');
+      if (!reqs.length) { sec.style.display = 'none'; return; }
+      sec.style.display = 'block';
+      list.innerHTML = reqs.map(r => `
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
+          <span style="flex:1;font-family:'Orbitron',monospace;font-size:0.55rem;color:#d0d0f0;">${r.username}</span>
+          <button onclick="acceptFriendReq('${r.id}','${r.username}')" style="padding:2px 6px;background:rgba(0,200,0,0.12);border:1px solid #00cc00;border-radius:4px;font-size:0.55rem;color:#00cc00;cursor:pointer;">✓</button>
+          <button onclick="declineFriendReq('${r.id}')" style="padding:2px 6px;background:transparent;border:1px solid #ff3333;border-radius:4px;font-size:0.55rem;color:#ff3333;cursor:pointer;">✗</button>
+        </div>`).join('');
+    });
+}
+
+async function acceptFriendReq(fromUid, fromUsername) {
+  const b = fbStore.batch();
+  b.set(fbStore.collection('friends').doc(fbUser.uid).collection('list').doc(fromUid),
+    { uid: fromUid, username: fromUsername, since: firebase.firestore.FieldValue.serverTimestamp() });
+  b.set(fbStore.collection('friends').doc(fromUid).collection('list').doc(fbUser.uid),
+    { uid: fbUser.uid, username: fbMyUsername, since: firebase.firestore.FieldValue.serverTimestamp() });
+  b.delete(fbStore.collection('friend_requests').doc(fbUser.uid).collection('received').doc(fromUid));
+  await b.commit().catch(() => {});
+}
+
+async function declineFriendReq(fromUid) {
+  await fbStore.collection('friend_requests').doc(fbUser.uid).collection('received').doc(fromUid).delete().catch(() => {});
+}
+
+function loadFriendsList() {
+  if (!fbUser) return;
+  if (fbFriendsUnsub) fbFriendsUnsub();
+  fbFriendsUnsub = fbStore.collection('friends').doc(fbUser.uid).collection('list')
+    .onSnapshot(snap => renderFriendsList(snap.docs.map(d => d.data())));
+}
+
+function renderFriendsList(friends) {
+  const el = document.getElementById('fp-friends-list');
+  if (!friends.length) {
+    el.innerHTML = '<div style="text-align:center;color:#5a5a8a;font-size:0.7rem;padding:1rem;font-family:Rajdhani,sans-serif;">אין חברים עדיין — הוסף חבר למעלה</div>';
+    return;
+  }
+  el.innerHTML = '';
+  let onlineCnt = 0;
+  friends.forEach(f => {
+    fbRtdb.ref('presence/' + f.uid).once('value', snap => {
+      const pres = snap.val();
+      const online = !!(pres && pres.online);
+      if (online) { onlineCnt++; const badge = document.getElementById('online-badge'); badge.textContent = onlineCnt; badge.style.display = 'flex'; }
+      const div = document.createElement('div');
+      div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;';
+      div.innerHTML = `
+        <div style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${online ? '#00cc00' : '#3a3a4a'};${online ? 'box-shadow:0 0 4px #00cc00;' : ''}"></div>
+        <span style="flex:1;font-family:'Orbitron',monospace;font-size:0.58rem;color:${online ? '#d0d0f0' : '#5a5a8a'};">${f.username}</span>
+        <button onclick="openChat('${f.uid}','${f.username}')" style="padding:2px 7px;background:rgba(255,0,255,0.08);border:1px solid #ff00ff;border-radius:4px;font-size:0.5rem;color:#ff00ff;cursor:pointer;">💬</button>
+        ${online ? `<button onclick="openInviteFor('${f.uid}','${f.username}')" style="padding:2px 7px;background:rgba(0,245,255,0.08);border:1px solid #00f5ff;border-radius:4px;font-size:0.5rem;color:#00f5ff;cursor:pointer;">🎮</button>` : ''}
+      `;
+      el.appendChild(div);
+    });
+  });
+}
+
+// ──── CHAT ────
+function openChat(friendUid, friendUsername) {
+  fbChatFriend = { uid: friendUid, username: friendUsername };
+  document.getElementById('chat-title').textContent = '💬 ' + friendUsername;
+  document.getElementById('chat-win').classList.remove('hidden');
+  document.getElementById('friends-panel').classList.add('hidden');
+  document.getElementById('chat-inv-btn').style.display = 'inline-block';
+  fbRtdb.ref('presence/' + friendUid).once('value', snap => {
+    const p = snap.val();
+    document.getElementById('chat-status').textContent = (p && p.online) ? '🟢 מחובר' : '⚫ לא מחובר';
+  });
+  if (fbChatUnsub) { fbChatUnsub(); fbChatUnsub = null; }
+  const chatId = [fbUser.uid, friendUid].sort().join('_');
+  const el = document.getElementById('chat-msgs');
+  el.innerHTML = '';
+  fbChatUnsub = fbStore.collection('chats').doc(chatId).collection('messages')
+    .orderBy('ts').limitToLast(60)
+    .onSnapshot(snap => {
+      snap.docChanges().forEach(ch => {
+        if (ch.type !== 'added') return;
+        const d = ch.doc.data();
+        const mine = d.from === fbUser.uid;
+        const div = document.createElement('div');
+        div.style.cssText = `max-width:80%;padding:5px 9px;border-radius:8px;word-break:break-word;align-self:${mine ? 'flex-end' : 'flex-start'};background:${mine ? 'rgba(255,0,255,0.15)' : 'rgba(0,245,255,0.1)'};color:#d0d0f0;font-family:'Rajdhani',sans-serif;font-size:0.85rem;margin-bottom:2px;`;
+        const ts = d.ts ? new Date(d.ts.toMillis()).toLocaleTimeString('he', { hour: '2-digit', minute: '2-digit' }) : '';
+        div.innerHTML = `${d.text}<div style="font-size:0.5rem;color:#444;margin-top:2px;">${mine ? ts : d.fromName + ' · ' + ts}</div>`;
+        el.appendChild(div);
+        el.scrollTop = el.scrollHeight;
+      });
+    });
+}
+
+function closeChat() {
+  document.getElementById('chat-win').classList.add('hidden');
+  if (fbChatUnsub) { fbChatUnsub(); fbChatUnsub = null; }
+  fbChatFriend = null;
+}
+
+function openChatInvite() {
+  if (fbChatFriend) openInviteFor(fbChatFriend.uid, fbChatFriend.username);
+}
+
+async function sendChatMsg() {
+  const inp = document.getElementById('chat-inp');
+  const text = inp.value.trim();
+  if (!text || !fbChatFriend || !fbUser) return;
+  inp.value = '';
+  const chatId = [fbUser.uid, fbChatFriend.uid].sort().join('_');
+  await fbStore.collection('chats').doc(chatId).collection('messages').add({
+    from: fbUser.uid, fromName: fbMyUsername, text,
+    ts: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(() => {});
+}
+
+// ──── INVITATIONS ────
+const ALL_INVITE_MODES = [
+  { id: 'classic',    label: '⚡ CLASSIC',    req: null },
+  { id: 'ghost',      label: '👻 GHOST',      req: null },
+  { id: 'expand',     label: '📡 EXPAND',     req: null },
+  { id: 'ultimate',   label: '🌌 ULTIMATE',   req: null },
+  { id: 'sudden',     label: '☠️ SUDDEN',     req: 'admin' },
+  { id: 'chaos',      label: '🌀 CHAOS',      req: 'admin' },
+  { id: 'marathon',   label: '⏳ MARATHON',   req: 'admin' },
+  { id: 'gobble',     label: '♟️ GOBBLE',     req: 'admin2' },
+  { id: 'wrap',       label: '🌐 WRAP',       req: 'admin2' },
+  { id: 'minefield',  label: '💥 MINEFIELD',  req: 'admin2' },
+  { id: 'quantum',    label: '⚛️ QUANTUM',    req: 'admin2' },
+  { id: 'gravity',    label: '🌍 GRAVITY',    req: 'admin2' },
+  { id: 'powercard',  label: '🃏 POWERCARD',  req: 'admin2' },
+  { id: 'blocker',    label: '🚧 BLOCKER',    req: 'admin2' },
+  { id: 'points',     label: '🏅 POINTS',     req: 'admin2' },
+  { id: 'nightvision',label: '🌑 NIGHTVISION',req: 'admin2' },
+  { id: 'flip',       label: '🔄 FLIP',       req: 'admin2' },
+];
+
+function openInviteFor(friendUid, friendUsername) {
+  fbInviteTarget = { uid: friendUid, username: friendUsername };
+  fbSelInviteMode = null;
+  document.getElementById('invite-modal-to').textContent = 'הזמן את ' + friendUsername + ' למשחק';
+  const cb = document.getElementById('invite-confirm-btn');
+  cb.textContent = 'בחר מצב משחק';
+  cb.style.cssText += ';background:rgba(0,245,255,0.06);border-color:#336;color:#5a5a8a;cursor:default;';
+  const grid = document.getElementById('invite-modes-grid');
+  grid.innerHTML = '';
+  ALL_INVITE_MODES.forEach(m => {
+    const ok = !m.req || (m.req === 'admin' && P.secretModes) || (m.req === 'admin2' && P['mode_' + m.id]);
+    if (!ok) return;
+    const btn = document.createElement('button');
+    btn.style.cssText = "padding:7px 5px;background:transparent;border:1px solid #22224a;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.5rem;color:#5a5a8a;cursor:pointer;transition:all 0.15s;text-align:center;";
+    btn.textContent = m.label;
+    btn.onclick = () => {
+      grid.querySelectorAll('button').forEach(b => { b.style.background = 'transparent'; b.style.borderColor = '#22224a'; b.style.color = '#5a5a8a'; });
+      btn.style.background = 'rgba(0,245,255,0.1)'; btn.style.borderColor = '#00f5ff'; btn.style.color = '#00f5ff';
+      fbSelInviteMode = m.id;
+      cb.textContent = '🎮 שלח הזמנה — ' + m.label;
+      cb.style.background = 'rgba(0,245,255,0.12)'; cb.style.borderColor = '#00f5ff'; cb.style.color = '#00f5ff'; cb.style.cursor = 'pointer';
+    };
+    grid.appendChild(btn);
+  });
+  document.getElementById('invite-modal').classList.remove('hidden');
+}
+
+function closeInviteModal() {
+  document.getElementById('invite-modal').classList.add('hidden');
+  fbInviteTarget = null; fbSelInviteMode = null;
+}
+
+async function confirmSendInvite() {
+  if (!fbSelInviteMode || !fbInviteTarget || !fbUser) return;
+  try {
+    const invRef = await fbStore.collection('invitations').add({
+      from: fbUser.uid, fromName: fbMyUsername,
+      to: fbInviteTarget.uid, mode: fbSelInviteMode,
+      isAdminMode: ALL_INVITE_MODES.find(m => m.id === fbSelInviteMode)?.req != null,
+      status: 'pending', ts: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    fbSentInviteId = invRef.id;
+    listenSentInvite(invRef.id, fbInviteTarget.username);
+    notify('🎮 הזמנה נשלחה ל-' + fbInviteTarget.username + '!');
+  } catch(e) { notify('❌ שגיאה: ' + e.message); }
+  closeInviteModal();
+}
+
+function listenSentInvite(inviteId, oppName) {
+  if (fbSentInviteUnsub) fbSentInviteUnsub();
+  fbSentInviteUnsub = fbStore.collection('invitations').doc(inviteId).onSnapshot(doc => {
+    if (!doc.exists) return;
+    const d = doc.data();
+    if (d.status === 'accepted' && d.roomId) {
+      if (fbSentInviteUnsub) { fbSentInviteUnsub(); fbSentInviteUnsub = null; }
+      notify('✅ ' + oppName + ' קיבל!');
+      beginOnlineGame(d.roomId, 'X', oppName, d.mode);
+    } else if (d.status === 'declined') {
+      if (fbSentInviteUnsub) { fbSentInviteUnsub(); fbSentInviteUnsub = null; }
+      notify('❌ ' + oppName + ' דחה את ההזמנה');
+    }
+  });
+}
+
+function listenIncomingInvites() {
+  if (!fbUser) return;
+  if (fbInviteUnsub) fbInviteUnsub();
+  fbInviteUnsub = fbStore.collection('invitations')
+    .where('to', '==', fbUser.uid).where('status', '==', 'pending')
+    .onSnapshot(snap => {
+      snap.docChanges().forEach(ch => {
+        if (ch.type === 'added') showInviteToast({ id: ch.doc.id, ...ch.doc.data() });
+      });
+    });
+}
+
+function showInviteToast(inv) {
+  fbPendingInvite = inv;
+  const modeName = ALL_INVITE_MODES.find(m => m.id === inv.mode)?.label || inv.mode.toUpperCase();
+  document.getElementById('invite-toast-txt').innerHTML =
+    `🎮 הזמנה מ-<strong style="color:#ffd700">${inv.fromName}</strong><br><span style="font-size:0.55rem;">מצב: ${modeName}</span>`;
+  document.getElementById('invite-toast').classList.remove('hidden');
+  clearTimeout(window._invToastTimer);
+  window._invToastTimer = setTimeout(() => {
+    if (fbPendingInvite && fbPendingInvite.id === inv.id) declineInvite();
+  }, 30000);
+}
+
+async function acceptInvite() {
+  if (!fbPendingInvite || !fbUser) return;
+  const inv = fbPendingInvite;
+  document.getElementById('invite-toast').classList.add('hidden');
+  fbPendingInvite = null;
+  try {
+    const roomRef = await fbStore.collection('rooms').add({
+      playerX: inv.from, playerO: fbUser.uid,
+      playerXName: inv.fromName, playerOName: fbMyUsername,
+      mode: inv.mode, board: Array(16).fill(null), cur: 'X',
+      over: false, moves: 0, sc: { X: 0, O: 0, d: 0 }, blocked: {},
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await fbStore.collection('invitations').doc(inv.id).update({ status: 'accepted', roomId: roomRef.id });
+    beginOnlineGame(roomRef.id, 'O', inv.fromName, inv.mode);
+  } catch(e) { notify('❌ שגיאה: ' + e.message); }
+}
+
+async function declineInvite() {
+  if (!fbPendingInvite) return;
+  await fbStore.collection('invitations').doc(fbPendingInvite.id).update({ status: 'declined' }).catch(() => {});
+  document.getElementById('invite-toast').classList.add('hidden');
+  fbPendingInvite = null;
+}
+
+// ──── ONLINE GAME ────
+function beginOnlineGame(roomId, myRole, oppName, mode) {
+  if (!['classic', 'ghost', 'expand', 'ultimate'].includes(mode)) {
+    const mb = document.getElementById('mode-btn-' + mode);
+    if (mb) mb.classList.remove('hidden');
+  }
+  _mode = mode; _vsAI = false;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  const mBtn = document.getElementById('mode-btn-' + mode) || document.querySelector('.mode-btn');
+  if (mBtn) mBtn.classList.add('active');
+  ONLINE_ROOM = { roomId, myRole, oppName, unsubscribe: null };
+  startGame();
+  if (myRole === 'X') {
+    document.getElementById('o-lbl').textContent = oppName;
+  } else {
+    const xLbl = document.querySelector('.x-panel .player-label');
+    if (xLbl) xLbl.textContent = oppName;
+    document.getElementById('o-lbl').textContent = fbMyUsername;
+  }
+  ONLINE_ROOM.unsubscribe = fbStore.collection('rooms').doc(roomId).onSnapshot(doc => {
+    if (!doc.exists || !ONLINE_ROOM) return;
+    const data = doc.data();
+    if (data.lastMovedBy && data.lastMovedBy !== ONLINE_ROOM.myRole) {
+      applyOnlineState(data);
+    }
+  });
+  notify('🌐 משחק אונליין החל! אתה שחקן ' + myRole);
+}
+
+function applyOnlineState(data) {
+  if (!G || !ONLINE_ROOM) return;
+  G.board = data.board || G.board;
+  G.moves = data.moves || G.moves;
+  G.sc = data.sc || G.sc;
+  G.blocked = data.blocked || {};
+  if (data.over) {
+    G.over = true; stopTimer();
+    const sk = skin();
+    if (data.winner) {
+      const isMyWin = data.winner === ONLINE_ROOM.myRole;
+      setTimeout(() => {
+        document.getElementById('go-label').textContent = isMyWin ? '🏆 ניצחון!' : '😞 הפסד';
+        document.getElementById('go-mark').textContent = data.winner === 'X' ? sk.x : sk.o;
+        document.getElementById('go-mark').className = 'go-mark ' + data.winner.toLowerCase();
+        document.getElementById('go-name').textContent = isMyWin ? 'ניצחת!' : (ONLINE_ROOM.oppName + ' ניצח!');
+        document.getElementById('go-xp').textContent = isMyWin ? '+50 XP 🎉' : '';
+        if (isMyWin) { addXP(50); P.wins++; saveP(); }
+        endOnlineGame();
+        showScreen('gameover');
+      }, 900);
+    } else if (data.draw) {
+      G.sc.d++;
+      setTimeout(() => {
+        document.getElementById('go-label').textContent = '🤝 תיקו!';
+        document.getElementById('go-mark').textContent = '—';
+        document.getElementById('go-mark').className = 'go-mark draw';
+        document.getElementById('go-name').textContent = 'אף אחד לא ניצח';
+        document.getElementById('go-xp').textContent = '+15 XP';
+        addXP(15); saveP();
+        endOnlineGame();
+        showScreen('gameover');
+      }, 500);
+    }
+    return;
+  }
+  G.cur = data.cur || G.cur;
+  renderAll(); updateStatus();
+  document.getElementById('panel-x').classList.toggle('active', G.cur === 'X');
+  document.getElementById('panel-o').classList.toggle('active', G.cur === 'O');
+}
+
+function syncOnlineMove(winner, draw) {
+  if (!ONLINE_ROOM || !fbStore) return;
+  const data = {
+    board: G.board, cur: G.cur, over: G.over, moves: G.moves,
+    sc: G.sc, blocked: G.blocked, lastMovedBy: ONLINE_ROOM.myRole,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if (winner) data.winner = winner;
+  if (draw) data.draw = true;
+  fbStore.collection('rooms').doc(ONLINE_ROOM.roomId).update(data).catch(() => {});
+}
+
+function endOnlineGame() {
+  if (!ONLINE_ROOM) return;
+  if (ONLINE_ROOM.unsubscribe) ONLINE_ROOM.unsubscribe();
+  ONLINE_ROOM = null;
+  document.getElementById('o-lbl').textContent = 'שחקן O';
+  const xLbl = document.querySelector('.x-panel .player-label');
+  if (xLbl) xLbl.textContent = 'שחקן X';
+}
+
+window.addEventListener('load', () => { if (FB_ACTIVE) setTimeout(fbStart, 400); });
 </script>
 </body>
 </html>
