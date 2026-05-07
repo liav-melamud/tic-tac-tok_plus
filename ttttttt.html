@@ -555,6 +555,32 @@ body::after {
 @keyframes expand-flash { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 30px rgba(0,245,255,0.5)} }
 
 .expand-flash { animation: expand-flash 0.5s ease-in-out 3; }
+
+/* ======= PROFILE SCREEN ======= */
+.profile-card { background:#0e0e1c; border:1px solid #22224a; border-radius:10px; padding:0.75rem 1rem; cursor:pointer; transition:all 0.18s; margin-bottom:0.5rem; width:100%; box-sizing:border-box; }
+.profile-card:hover { border-color:#00f5ff; box-shadow:0 0 10px rgba(0,245,255,0.2); }
+.pc-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.25rem; }
+.pc-name { font-family:'Orbitron',monospace; font-size:0.78rem; font-weight:700; color:#00f5ff; }
+.pc-del { background:transparent; border:none; color:#5a5a8a; cursor:pointer; font-size:0.9rem; padding:0 2px; }
+.pc-del:hover { color:#ff3333; }
+.pc-info { font-family:'Rajdhani',sans-serif; font-size:0.75rem; color:#5a5a8a; }
+#profile-cards { width:min(92vw,380px); max-height:40vh; overflow-y:auto; }
+.profile-new-section { width:min(92vw,380px); display:flex; flex-direction:column; gap:0.5rem; margin-top:0.5rem; }
+
+/* ======= MENU LAYOUT (online side panel) ======= */
+.menu-layout { display:flex; gap:1.2rem; align-items:flex-start; justify-content:center; flex-wrap:wrap; width:100%; max-width:820px; }
+.menu-main { display:flex; flex-direction:column; align-items:center; width:min(92vw,480px); flex-shrink:0; }
+#online-side-panel { display:none; flex-direction:column; width:220px; flex-shrink:0; gap:0.6rem; padding-top:0.5rem; }
+.osp-header { font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:900; background:linear-gradient(135deg,#00f5ff,#ff00ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; letter-spacing:0.15em; text-align:center; }
+.osp-section { background:rgba(14,14,28,0.95); border:1px solid rgba(0,245,255,0.3); border-radius:10px; padding:0.65rem; }
+.osp-section-title { font-family:'Orbitron',monospace; font-size:0.48rem; color:#5a5a8a; letter-spacing:0.1em; margin-bottom:0.35rem; text-transform:uppercase; }
+.osp-friend-row { display:flex; align-items:center; gap:5px; padding:3px 0; }
+.osp-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.osp-fname { flex:1; font-family:'Orbitron',monospace; font-size:0.48rem; color:#d0d0f0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.osp-btn-sm { padding:2px 5px; background:rgba(0,245,255,0.08); border:1px solid #00f5ff; border-radius:4px; font-size:0.44rem; color:#00f5ff; cursor:pointer; font-family:'Orbitron',monospace; }
+.osp-btn-chat { padding:2px 5px; background:rgba(255,0,255,0.08); border:1px solid #ff00ff; border-radius:4px; font-size:0.44rem; color:#ff00ff; cursor:pointer; }
+#osp-switch-profile { width:100%; padding:0.4rem; background:transparent; border:1px solid #22224a; border-radius:6px; font-family:'Orbitron',monospace; font-size:0.48rem; color:#5a5a8a; cursor:pointer; margin-top:0.3rem; }
+#osp-switch-profile:hover { border-color:#00f5ff; color:#00f5ff; }
 </style>
 <!-- Firebase 9 compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -691,6 +717,21 @@ body::after {
 @keyframes slide-up-panel{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
 </style>
 
+<!-- ======= PROFILE PICKER ======= -->
+<div id="screen-profile" class="screen hidden">
+  <div class="logo"><span class="x">X</span><span style="color:var(--muted);font-size:0.6em">—</span><span class="o">O</span></div>
+  <div class="subtitle">בחר שחקן · CHOOSE PLAYER</div>
+  <div id="profile-cards"></div>
+  <div class="profile-new-section">
+    <div style="font-family:'Orbitron',monospace;font-size:0.58rem;color:#5a5a8a;text-align:center;letter-spacing:0.1em;">— שחקן חדש —</div>
+    <input id="profile-inp" type="text" maxlength="20" placeholder="שם שחקן חדש..."
+      style="padding:0.65rem 1rem;background:#06060f;border:1px solid #22224a;border-radius:6px;color:#d0d0f0;font-family:'Orbitron',monospace;font-size:0.75rem;text-align:center;outline:none;transition:border-color 0.2s;"
+      oninput="document.getElementById('profile-err').textContent=''" onkeydown="if(event.key==='Enter')createProfile()"/>
+    <div id="profile-err" style="color:#ff3333;font-family:'Orbitron',monospace;font-size:0.6rem;min-height:1rem;text-align:center;"></div>
+    <button onclick="createProfile()" style="padding:0.65rem;background:linear-gradient(135deg,rgba(0,245,255,0.18),rgba(255,0,255,0.1));border:1px solid #00f5ff;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:700;color:#00f5ff;cursor:pointer;">+ צור שחקן חדש</button>
+  </div>
+</div>
+
 <!-- ======= ONLINE SYSTEM ======= -->
 
 <!-- Username setup modal -->
@@ -769,6 +810,22 @@ body::after {
       <button onclick="closeInviteModal()" style="background:transparent;border:none;color:#5a5a8a;font-size:1.1rem;cursor:pointer;">✕</button>
     </div>
     <div id="invite-modal-to" style="font-family:'Orbitron',monospace;font-size:0.55rem;color:#5a5a8a;margin-bottom:0.7rem;"></div>
+    <div style="margin-bottom:0.7rem;">
+      <div style="font-family:'Orbitron',monospace;font-size:0.5rem;color:#5a5a8a;margin-bottom:0.3rem;">⚔️ כמה משחקים (best of)</div>
+      <div class="tog-row" style="gap:5px;">
+        <button class="tog-btn active" id="inv-bo1" onclick="setInvBestOf(1,this)">1</button>
+        <button class="tog-btn" id="inv-bo3" onclick="setInvBestOf(3,this)">3</button>
+        <button class="tog-btn" id="inv-bo5" onclick="setInvBestOf(5,this)">5</button>
+        <button class="tog-btn" id="inv-bo7" onclick="setInvBestOf(7,this)">7</button>
+      </div>
+    </div>
+    <div style="margin-bottom:0.7rem;">
+      <div style="font-family:'Orbitron',monospace;font-size:0.5rem;color:#5a5a8a;margin-bottom:0.3rem;">🔐 קוד אדמין (אופציונלי)</div>
+      <input id="inv-admin-code" type="text" placeholder="הקלד קוד אדמין..." maxlength="20"
+        style="width:100%;padding:0.35rem 0.6rem;background:#06060f;border:1px solid #22224a;border-radius:5px;color:#ffd700;font-family:'Orbitron',monospace;font-size:0.58rem;outline:none;box-sizing:border-box;"
+        oninput="applyInvAdminCode(this.value)"/>
+      <div id="inv-admin-msg" style="font-family:'Orbitron',monospace;font-size:0.48rem;min-height:0.7rem;margin-top:3px;"></div>
+    </div>
     <div id="invite-modes-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:0.8rem;"></div>
     <button id="invite-confirm-btn" onclick="confirmSendInvite()"
       style="width:100%;padding:0.6rem;background:rgba(0,245,255,0.06);border:1px solid #336;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.65rem;color:#5a5a8a;cursor:default;transition:all 0.2s;">בחר מצב משחק</button>
@@ -786,10 +843,11 @@ body::after {
 </div>
 
 <!-- ======= MENU ======= -->
-<div id="screen-menu" class="screen">
+<div id="screen-menu" class="screen hidden">
   <div class="logo"><span class="x">X</span><span style="color:var(--muted);font-size:0.6em">—</span><span class="o">O</span></div>
   <div class="subtitle">CYBER EDITION · v2.0</div>
 
+  <div class="menu-layout"><div class="menu-main">
   <div class="menu-grid">
     <div class="mode-btn active" onclick="selMode('classic',this)">
       <div class="mode-icon">⚡</div>
@@ -919,6 +977,25 @@ body::after {
 
   <button class="start-btn" onclick="startGame()">▶ התחל משחק</button>
   <button class="shop-link" onclick="goShop()">⭐ חנות עיצובים · רמה <span id="menu-lv">1</span></button>
+  </div><!-- end menu-main -->
+  <div id="online-side-panel">
+    <div class="osp-header">🌐 ONLINE</div>
+    <div id="osp-username" style="font-family:'Rajdhani',sans-serif;font-size:0.75rem;color:#8888aa;text-align:center;"></div>
+    <div class="osp-section">
+      <div class="osp-section-title">🟢 מחוברים</div>
+      <div id="osp-online-count" style="font-family:'Orbitron',monospace;font-size:0.62rem;color:#00cc00;margin-bottom:0.35rem;">0 מחוברים</div>
+      <div id="osp-online-list"><div style="font-size:0.6rem;color:#444;font-family:Rajdhani,sans-serif;">אין חברים מחוברים</div></div>
+    </div>
+    <div class="osp-section">
+      <div class="osp-section-title">👥 כל החברים</div>
+      <div id="osp-all-list"><div style="font-size:0.6rem;color:#444;font-family:Rajdhani,sans-serif;">התחבר כדי לראות חברים</div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.4rem;">
+      <button onclick="toggleFriendsPanel()" style="padding:0.45rem;background:linear-gradient(135deg,rgba(0,245,255,0.1),rgba(255,0,255,0.07));border:1px solid rgba(0,245,255,0.4);border-radius:7px;font-family:'Orbitron',monospace;font-size:0.52rem;color:#00f5ff;cursor:pointer;">+ הוסף חבר</button>
+      <button id="osp-switch-profile" onclick="switchProfile()">🔄 החלף שחקן</button>
+    </div>
+  </div><!-- end online-side-panel -->
+  </div><!-- end menu-layout -->
 </div>
 
 <!-- ======= GAME ======= -->
@@ -1025,13 +1102,89 @@ const MODE_NAMES = { classic:'CLASSIC 3×3', ghost:'GHOST MODE', expand:'EXPAND 
 const XP_PER_LV = 100;
 
 // =====================================================
-// PERSISTENCE
+// PERSISTENCE — PROFILE SYSTEM
 // =====================================================
-let P = (() => {
-  try { return JSON.parse(localStorage.getItem('cxo') || '{}'); } catch(e) { return {}; }
-})();
-P = { level: P.level||1, xp: P.xp||0, wins: P.wins||0, skin: P.skin||'classic', unlocked: P.unlocked||['classic'], hints: P.hints||false, pu_infinite: P.pu_infinite||false };
-function saveP() { try { localStorage.setItem('cxo', JSON.stringify(P)); } catch(e){} }
+let currentProfile = localStorage.getItem('cxo_active') || null;
+let P;
+
+function initPData(name) {
+  const raw = (() => { try { return JSON.parse(localStorage.getItem('cxo_p_' + name) || '{}'); } catch(e) { return {}; } })();
+  P = { level: raw.level||1, xp: raw.xp||0, wins: raw.wins||0, skin: raw.skin||'classic',
+    unlocked: raw.unlocked||['classic'], hints: raw.hints||false, pu_infinite: raw.pu_infinite||false, secretModes: raw.secretModes||false };
+  ['gobble','wrap','minefield','quantum','gravity','powercard','blocker','points','nightvision','flip'].forEach(m => { if (raw['mode_'+m]) P['mode_'+m] = true; });
+}
+
+// Migrate old single-profile data to new system
+if (!currentProfile && localStorage.getItem('cxo')) {
+  const _oldData = (() => { try { return JSON.parse(localStorage.getItem('cxo')||'{}'); } catch(e){return{};} })();
+  const _migName = 'שחקן 1';
+  localStorage.setItem('cxo_p_' + _migName, JSON.stringify(_oldData));
+  const _migList = (() => { try { return JSON.parse(localStorage.getItem('cxo_profiles')||'[]'); } catch(e){return[];} })();
+  if (!_migList.includes(_migName)) { _migList.push(_migName); localStorage.setItem('cxo_profiles', JSON.stringify(_migList)); }
+  currentProfile = _migName; localStorage.setItem('cxo_active', _migName);
+}
+
+if (currentProfile) { initPData(currentProfile); }
+else { P = { level:1, xp:0, wins:0, skin:'classic', unlocked:['classic'], hints:false, pu_infinite:false, secretModes:false }; }
+
+function saveP() { if (!currentProfile) return; try { localStorage.setItem('cxo_p_' + currentProfile, JSON.stringify(P)); } catch(e){} }
+function getProfiles() { try { return JSON.parse(localStorage.getItem('cxo_profiles') || '[]'); } catch(e) { return []; } }
+function setProfiles(list) { localStorage.setItem('cxo_profiles', JSON.stringify(list)); }
+
+function renderProfileList() {
+  const list = getProfiles();
+  const el = document.getElementById('profile-cards');
+  if (!el) return;
+  if (!list.length) { el.innerHTML = '<div style="text-align:center;color:#5a5a8a;font-family:Rajdhani,sans-serif;padding:1rem;">אין פרופילים — צור אחד!</div>'; return; }
+  el.innerHTML = list.map(name => {
+    const raw = (() => { try { return JSON.parse(localStorage.getItem('cxo_p_' + name) || '{}'); } catch(e){ return {}; } })();
+    return `<div class="profile-card" onclick="selectProfile('${name}')">
+      <div class="pc-header"><span class="pc-name">${name}</span><button class="pc-del" onclick="deleteProfile('${name}',event)">✕</button></div>
+      <div class="pc-info">⭐ רמה ${raw.level||1} · ${raw.xp||0} XP · ${raw.wins||0} ניצחונות</div>
+    </div>`;
+  }).join('');
+}
+
+function selectProfile(name) {
+  currentProfile = name; localStorage.setItem('cxo_active', name); initPData(name);
+  fbMyUsername = name; localStorage.setItem('cxo_username', name);
+  document.getElementById('menu-lv').textContent = P.level;
+  if (P.secretModes) document.querySelectorAll('.admin-mode').forEach(el => el.classList.remove('hidden'));
+  ['gobble','wrap','minefield','quantum','gravity','powercard','blocker','points','nightvision','flip'].forEach(m => {
+    if (P['mode_'+m]) { const el = document.getElementById('mode-btn-'+m); if (el) el.classList.remove('hidden'); }
+  });
+  SKINS.forEach(sk => { if (P.level >= sk.req && !P.unlocked.includes(sk.id)) P.unlocked.push(sk.id); });
+  saveP();
+  const ospName = document.getElementById('osp-username'); if (ospName) ospName.textContent = '👤 ' + name;
+  if (typeof FB_ACTIVE !== 'undefined' && FB_ACTIVE && !fbUser) fbStart();
+  goMenu();
+}
+
+async function createProfile() {
+  const inp = document.getElementById('profile-inp');
+  const err = document.getElementById('profile-err');
+  const name = inp.value.trim();
+  if (name.length < 2) { err.textContent = 'לפחות 2 תווים'; return; }
+  if (name.length > 20) { err.textContent = 'מקסימום 20 תווים'; return; }
+  if (!/^[\u05d0-\u05ea\w ]+$/.test(name)) { err.textContent = 'אותיות, מספרים, רווחים בלבד'; return; }
+  const list = getProfiles();
+  if (list.includes(name)) { err.textContent = '❌ שם כבר קיים'; return; }
+  list.push(name); setProfiles(list);
+  localStorage.setItem('cxo_p_' + name, JSON.stringify({ level:1, xp:0, wins:0, skin:'classic', unlocked:['classic'] }));
+  inp.value = ''; err.textContent = '';
+  selectProfile(name);
+}
+
+function deleteProfile(name, event) {
+  event.stopPropagation();
+  if (!confirm('מחוק את "' + name + '"? הנתונים יאבדו!')) return;
+  const list = getProfiles().filter(n => n !== name);
+  setProfiles(list); localStorage.removeItem('cxo_p_' + name);
+  if (currentProfile === name) { currentProfile = null; localStorage.removeItem('cxo_active'); }
+  renderProfileList();
+}
+
+function switchProfile() { currentProfile = null; localStorage.removeItem('cxo_active'); renderProfileList(); showScreen('profile'); }
 
 // =====================================================
 // MENU STATE
@@ -1154,7 +1307,7 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
   document.getElementById('screen-'+id).classList.remove('hidden');
 }
-function goMenu() { stopTimer(); endOnlineGame(); showScreen('menu'); document.getElementById('menu-lv').textContent = P.level; }
+function goMenu() { stopTimer(); endOnlineGame(); if (!currentProfile) { renderProfileList(); showScreen('profile'); } else { showScreen('menu'); document.getElementById('menu-lv').textContent = P.level; } }
 function goShop() { renderShop(); showScreen('shop'); }
 
 // =====================================================
@@ -2583,18 +2736,23 @@ function admin2SetLevel() {
 // =====================================================
 // INIT
 // =====================================================
-document.getElementById('menu-lv').textContent = P.level;
-if (P.secretModes) document.querySelectorAll('.admin-mode').forEach(el => el.classList.remove('hidden'));
-// Restore admin2 modes
-['gobble','wrap','minefield','quantum','gravity','powercard','blocker','points','nightvision','flip'].forEach(m => {
-  if (P['mode_'+m]) {
-    const el = document.getElementById('mode-btn-'+m);
-    if (el) el.classList.remove('hidden');
-  }
-});
-// Ensure existing level has correct skins unlocked
-SKINS.forEach(sk => { if (P.level >= sk.req && !P.unlocked.includes(sk.id)) P.unlocked.push(sk.id); });
-saveP();
+if (!currentProfile) {
+  renderProfileList();
+  showScreen('profile');
+} else {
+  document.getElementById('menu-lv').textContent = P.level;
+  if (P.secretModes) document.querySelectorAll('.admin-mode').forEach(el => el.classList.remove('hidden'));
+  // Restore admin2 modes
+  ['gobble','wrap','minefield','quantum','gravity','powercard','blocker','points','nightvision','flip'].forEach(m => {
+    if (P['mode_'+m]) {
+      const el = document.getElementById('mode-btn-'+m);
+      if (el) el.classList.remove('hidden');
+    }
+  });
+  // Ensure existing level has correct skins unlocked
+  SKINS.forEach(sk => { if (P.level >= sk.req && !P.unlocked.includes(sk.id)) P.unlocked.push(sk.id); });
+  saveP();
+}
 
 // =====================================================
 // FIREBASE ONLINE SYSTEM
@@ -2657,6 +2815,9 @@ async function onFbAuthed() {
   document.getElementById('fp-myname').textContent = '👤 ' + fbMyUsername;
   const tog = document.getElementById('menu-online-tog');
   if (tog) { tog.style.display = 'inline-flex'; document.getElementById('menu-online-name').textContent = fbMyUsername; }
+  // Show online side panel
+  const panel = document.getElementById('online-side-panel');
+  if (panel) { panel.style.display = 'flex'; const ospName = document.getElementById('osp-username'); if (ospName) ospName.textContent = '👤 ' + fbMyUsername; }
   listenFriendRequests();
   listenIncomingInvites();
   loadFriendsList();
@@ -2762,6 +2923,7 @@ function renderFriendsList(friends) {
     el.innerHTML = '<div style="text-align:center;color:#5a5a8a;font-size:0.7rem;padding:1rem;font-family:Rajdhani,sans-serif;">אין חברים עדיין — הוסף חבר למעלה</div>';
     const mobSub = document.getElementById('menu-online-sub');
     if (mobSub) mobSub.textContent = '👤 ' + (fbMyUsername||'') + ' · אין חברים עדיין';
+    updateOnlineSidePanel([]);
     return;
   }
   el.innerHTML = '';
@@ -2786,6 +2948,39 @@ function renderFriendsList(friends) {
       el.appendChild(div);
     });
   });
+  updateOnlineSidePanel(friends);
+}
+
+function updateOnlineSidePanel(friends) {
+  const panel = document.getElementById('online-side-panel');
+  if (!panel) return;
+  panel.style.display = 'flex';
+  const ospName = document.getElementById('osp-username'); if (ospName) ospName.textContent = '👤 ' + (fbMyUsername||'');
+  if (!friends.length) { finalizeSidePanel([], []); return; }
+  let pending = friends.length;
+  const online = [], offline = [];
+  friends.forEach(f => {
+    fbRtdb.ref('presence/' + f.uid).once('value', snap => {
+      const pres = snap.val();
+      (pres && pres.online ? online : offline).push(f);
+      if (--pending === 0) finalizeSidePanel(online, offline);
+    });
+  });
+}
+
+function finalizeSidePanel(online, offline) {
+  const countEl = document.getElementById('osp-online-count');
+  if (countEl) countEl.textContent = online.length + ' מחוברים מתוך ' + (online.length + offline.length);
+  const onlineList = document.getElementById('osp-online-list');
+  if (onlineList) onlineList.innerHTML = online.length
+    ? online.map(f => `<div class="osp-friend-row"><div class="osp-dot" style="background:#00cc00;box-shadow:0 0 4px #00cc00;"></div><span class="osp-fname">${f.username}</span><button class="osp-btn-chat" onclick="openChat('${f.uid}','${f.username}')">💬</button><button class="osp-btn-sm" onclick="openInviteFor('${f.uid}','${f.username}')">🎮</button></div>`).join('')
+    : '<div style="font-size:0.6rem;color:#444;font-family:Rajdhani,sans-serif;padding:4px 0;">אין חברים מחוברים</div>';
+  const allList = document.getElementById('osp-all-list');
+  if (allList) allList.innerHTML = offline.length
+    ? offline.map(f => `<div class="osp-friend-row"><div class="osp-dot" style="background:#3a3a4a;"></div><span class="osp-fname" style="color:#5a5a8a;">${f.username}</span><button class="osp-btn-chat" onclick="openChat('${f.uid}','${f.username}')">💬</button></div>`).join('')
+    : '<div style="font-size:0.6rem;color:#444;font-family:Rajdhani,sans-serif;">אין חברים</div>';
+  const badge = document.getElementById('online-badge');
+  if (badge) { badge.textContent = online.length; badge.style.display = online.length > 0 ? 'flex' : 'none'; }
 }
 
 // ──── CHAT ────
@@ -2863,21 +3058,49 @@ const ALL_INVITE_MODES = [
   { id: 'flip',       label: '🔄 FLIP',       req: 'admin2' },
 ];
 
-function openInviteFor(friendUid, friendUsername) {
-  fbInviteTarget = { uid: friendUid, username: friendUsername };
-  fbSelInviteMode = null;
-  document.getElementById('invite-modal-to').textContent = 'הזמן את ' + friendUsername + ' למשחק';
-  const cb = document.getElementById('invite-confirm-btn');
-  cb.textContent = 'בחר מצב משחק';
-  cb.style.cssText += ';background:rgba(0,245,255,0.06);border-color:#336;color:#5a5a8a;cursor:default;';
+let fbInvBestOf = 1, fbInvAdminUnlocked = false, fbInvAdmin2Unlocked = false;
+
+function setInvBestOf(n, el) {
+  fbInvBestOf = n;
+  document.querySelectorAll('#inv-bo1,#inv-bo3,#inv-bo5,#inv-bo7').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function applyInvAdminCode(val) {
+  const msg = document.getElementById('inv-admin-msg');
+  const v = val.trim();
+  if (v === 'admin 2050') {
+    msg.textContent = '✅ מצבי אדמין נפתחו!'; msg.style.color = '#00f5ff';
+    rebuildInviteGrid(true, fbInvAdmin2Unlocked);
+  } else if (v === 'liavboom') {
+    msg.textContent = '✅ מצבי אדמין2 נפתחו!'; msg.style.color = '#ff00ff';
+    rebuildInviteGrid(fbInvAdminUnlocked, true);
+  } else {
+    msg.textContent = v.length > 3 ? '✕ קוד לא תקין' : ''; msg.style.color = '#ff3333';
+    if (v.length === 0) { msg.textContent = ''; rebuildInviteGrid(false, false); }
+  }
+}
+
+function rebuildInviteGrid(adminUnlocked, admin2Unlocked) {
+  fbInvAdminUnlocked = adminUnlocked; fbInvAdmin2Unlocked = admin2Unlocked;
   const grid = document.getElementById('invite-modes-grid');
+  const cb = document.getElementById('invite-confirm-btn');
+  const prevSel = fbSelInviteMode; fbSelInviteMode = null;
   grid.innerHTML = '';
+  cb.textContent = 'בחר מצב משחק';
+  cb.style.cssText = 'width:100%;padding:0.6rem;background:rgba(0,245,255,0.06);border:1px solid #336;border-radius:6px;font-family:\'Orbitron\',monospace;font-size:0.65rem;color:#5a5a8a;cursor:default;transition:all 0.2s;';
   ALL_INVITE_MODES.forEach(m => {
-    const ok = !m.req || (m.req === 'admin' && P.secretModes) || (m.req === 'admin2' && P['mode_' + m.id]);
+    const ok = !m.req || (m.req === 'admin' && (adminUnlocked || P.secretModes)) || (m.req === 'admin2' && (admin2Unlocked || P['mode_' + m.id]));
     if (!ok) return;
     const btn = document.createElement('button');
     btn.style.cssText = "padding:7px 5px;background:transparent;border:1px solid #22224a;border-radius:6px;font-family:'Orbitron',monospace;font-size:0.5rem;color:#5a5a8a;cursor:pointer;transition:all 0.15s;text-align:center;";
     btn.textContent = m.label;
+    if (m.id === prevSel) {
+      btn.style.background = 'rgba(0,245,255,0.1)'; btn.style.borderColor = '#00f5ff'; btn.style.color = '#00f5ff';
+      fbSelInviteMode = m.id;
+      cb.textContent = '🎮 שלח הזמנה — ' + m.label;
+      cb.style.background = 'rgba(0,245,255,0.12)'; cb.style.borderColor = '#00f5ff'; cb.style.color = '#00f5ff'; cb.style.cursor = 'pointer';
+    }
     btn.onclick = () => {
       grid.querySelectorAll('button').forEach(b => { b.style.background = 'transparent'; b.style.borderColor = '#22224a'; b.style.color = '#5a5a8a'; });
       btn.style.background = 'rgba(0,245,255,0.1)'; btn.style.borderColor = '#00f5ff'; btn.style.color = '#00f5ff';
@@ -2887,6 +3110,19 @@ function openInviteFor(friendUid, friendUsername) {
     };
     grid.appendChild(btn);
   });
+}
+
+function openInviteFor(friendUid, friendUsername) {
+  fbInviteTarget = { uid: friendUid, username: friendUsername };
+  fbSelInviteMode = null; fbInvBestOf = 1; fbInvAdminUnlocked = false; fbInvAdmin2Unlocked = false;
+  document.getElementById('invite-modal-to').textContent = 'הזמן את ' + friendUsername + ' למשחק';
+  // Reset best-of buttons
+  document.querySelectorAll('#inv-bo1,#inv-bo3,#inv-bo5,#inv-bo7').forEach(b => b.classList.remove('active'));
+  const bo1 = document.getElementById('inv-bo1'); if (bo1) bo1.classList.add('active');
+  // Reset admin code
+  const adminInp = document.getElementById('inv-admin-code'); if (adminInp) adminInp.value = '';
+  const adminMsg = document.getElementById('inv-admin-msg'); if (adminMsg) adminMsg.textContent = '';
+  rebuildInviteGrid(false, false);
   document.getElementById('invite-modal').classList.remove('hidden');
 }
 
@@ -2901,6 +3137,7 @@ async function confirmSendInvite() {
     const invRef = await fbStore.collection('invitations').add({
       from: fbUser.uid, fromName: fbMyUsername,
       to: fbInviteTarget.uid, mode: fbSelInviteMode,
+      bestOf: fbInvBestOf,
       isAdminMode: ALL_INVITE_MODES.find(m => m.id === fbSelInviteMode)?.req != null,
       status: 'pending', ts: firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -2919,7 +3156,7 @@ function listenSentInvite(inviteId, oppName) {
     if (d.status === 'accepted' && d.roomId) {
       if (fbSentInviteUnsub) { fbSentInviteUnsub(); fbSentInviteUnsub = null; }
       notify('✅ ' + oppName + ' קיבל!');
-      beginOnlineGame(d.roomId, 'X', oppName, d.mode);
+      beginOnlineGame(d.roomId, 'X', oppName, d.mode, d.bestOf || 1);
     } else if (d.status === 'declined') {
       if (fbSentInviteUnsub) { fbSentInviteUnsub(); fbSentInviteUnsub = null; }
       notify('❌ ' + oppName + ' דחה את ההזמנה');
@@ -2965,7 +3202,7 @@ async function acceptInvite() {
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     await fbStore.collection('invitations').doc(inv.id).update({ status: 'accepted', roomId: roomRef.id });
-    beginOnlineGame(roomRef.id, 'O', inv.fromName, inv.mode);
+    beginOnlineGame(roomRef.id, 'O', inv.fromName, inv.mode, inv.bestOf || 1);
   } catch(e) { notify('❌ שגיאה: ' + e.message); }
 }
 
@@ -2977,7 +3214,7 @@ async function declineInvite() {
 }
 
 // ──── ONLINE GAME ────
-function beginOnlineGame(roomId, myRole, oppName, mode) {
+function beginOnlineGame(roomId, myRole, oppName, mode, bestOf) {
   if (!['classic', 'ghost', 'expand', 'ultimate'].includes(mode)) {
     const mb = document.getElementById('mode-btn-' + mode);
     if (mb) mb.classList.remove('hidden');
@@ -2986,7 +3223,7 @@ function beginOnlineGame(roomId, myRole, oppName, mode) {
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
   const mBtn = document.getElementById('mode-btn-' + mode) || document.querySelector('.mode-btn');
   if (mBtn) mBtn.classList.add('active');
-  ONLINE_ROOM = { roomId, myRole, oppName, unsubscribe: null };
+  ONLINE_ROOM = { roomId, myRole, oppName, bestOf: bestOf || 1, unsubscribe: null };
   startGame();
   if (myRole === 'X') {
     document.getElementById('o-lbl').textContent = oppName;
