@@ -201,6 +201,16 @@ body::after {
   background: none; border: none;
 }
 .shop-link:hover { text-decoration: underline; }
+.friends-link {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: #00f5ff;
+  cursor: pointer;
+  text-shadow: 0 0 8px rgba(0,245,255,0.5);
+  background: none; border: none;
+}
+.friends-link:hover { text-decoration: underline; }
 
 /* ======= GAME SCREEN ======= */
 #screen-game {
@@ -976,6 +986,7 @@ body::after {
 
   <button class="start-btn" onclick="startGame()">▶ התחל משחק</button>
   <button class="shop-link" onclick="goShop()">⭐ חנות עיצובים · רמה <span id="menu-lv">1</span></button>
+  <button class="friends-link" onclick="toggleFriendsPanel()">👥 חברים · אונליין</button>
   </div><!-- end menu-main -->
   <div id="online-side-panel">
     <div class="osp-header">🌐 ONLINE</div>
