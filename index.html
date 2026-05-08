@@ -772,6 +772,14 @@ body::after {
     <div style="font-family:'Orbitron',monospace;font-size:0.68rem;font-weight:700;color:#00f5ff;">👥 חברים</div>
     <button onclick="toggleFriendsPanel()" style="background:transparent;border:none;color:#5a5a8a;font-size:1.1rem;cursor:pointer;">✕</button>
   </div>
+  <div id="fp-profile-bar" style="display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0.9rem;border-bottom:1px solid #22224a;background:rgba(0,245,255,0.03);flex-shrink:0;">
+    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,rgba(0,245,255,0.18),rgba(255,0,255,0.12));border:1px solid rgba(0,245,255,0.4);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">👤</div>
+    <div style="flex:1;min-width:0;">
+      <div id="fp-profile-name" style="font-family:'Orbitron',monospace;font-size:0.65rem;font-weight:700;color:#00f5ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+      <div id="fp-profile-sub" style="font-family:'Rajdhani',sans-serif;font-size:0.58rem;color:#5a5a8a;"></div>
+    </div>
+    <div id="fp-online-dot" style="width:8px;height:8px;border-radius:50%;background:#444;flex-shrink:0;" title="סטטוס חיבור"></div>
+  </div>
   <div style="padding:0.55rem 0.9rem;border-bottom:1px solid #22224a;flex-shrink:0;">
     <div style="display:flex;gap:6px;">
       <input id="fp-add-inp" type="text" placeholder="הוסף חבר לפי שם..." maxlength="20"
@@ -2867,6 +2875,13 @@ function toggleFriendsPanel() {
   const p = document.getElementById('friends-panel');
   p.classList.toggle('hidden');
   if (!p.classList.contains('hidden')) {
+    // Always fill profile bar with local profile
+    const nameEl = document.getElementById('fp-profile-name');
+    const subEl = document.getElementById('fp-profile-sub');
+    const dot = document.getElementById('fp-online-dot');
+    if (nameEl) nameEl.textContent = currentProfile || 'אורח';
+    if (subEl) subEl.textContent = 'רמה ' + (P ? P.level : 1) + ' · ' + (P ? P.wins : 0) + ' ניצחונות';
+    if (dot) { dot.style.background = FB_ACTIVE ? '#00cc00' : '#555'; dot.title = FB_ACTIVE ? 'מחובר לאונליין' : 'לא מחובר לאונליין'; }
     if (!FB_ACTIVE) {
       showFpMsg('⚠️ מצב אופליין — חברים דורשים Firebase', '#ffd700');
       const el = document.getElementById('fp-friends-list');
